@@ -1,122 +1,148 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import React, { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { AppProvider } from "./context/AppContext";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import QuoteModal from "./components/QuoteModal";
+import Toast from "./components/Toast";
 
-function App() {
-  const [count, setCount] = useState(0)
+import HomePage from "./pages/HomePage";
+import ProductsCatalogPage from "./pages/ProductsCatalogPage";
+import MachineryDetailPage from "./pages/MachineryDetailPage";
+import StartBusinessPage from "./pages/StartBusinessPage";
+import FindMachineryPage from "./pages/FindMachineryPage";
+import UpgradeMachineryPage from "./pages/UpgradeMachineryPage";
+import InsightsPage from "./pages/InsightsPage";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
+
+const HomeScrollAnimationWrapper = ({ children }) => {
+  const { pathname } = useLocation();
+  const isHomePage = pathname === "/";
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+
+    const mainEl = document.querySelector("main");
+    if (!mainEl) return;
+
+    // Only apply scroll animations on the Home Page ("/")
+    if (!isHomePage) {
+      mainEl.querySelectorAll("[data-scroll-anim]").forEach((el) => {
+        el.removeAttribute("data-scroll-anim");
+        el.classList.remove("scroll-in-view");
+        el.style.removeProperty("--scroll-delay");
+      });
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("scroll-in-view");
+          }
+        });
+      },
+      {
+        threshold: 0.08,
+        rootMargin: "0px 0px -30px 0px",
+      }
+    );
+
+    const observeElement = (el, animType, delayMs = 0) => {
+      if (!el.hasAttribute("data-scroll-anim")) {
+        el.setAttribute("data-scroll-anim", animType);
+        if (delayMs > 0) {
+          el.style.setProperty("--scroll-delay", `${delayMs}ms`);
+        }
+      }
+      // If element is already in or above the viewport, show it immediately
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight - 20) {
+        el.classList.add("scroll-in-view");
+      } else {
+        observer.observe(el);
+      }
+    };
+
+    const registerHomeAnimations = () => {
+      if (window.location.pathname !== "/") return;
+
+      const headings = mainEl.querySelectorAll("h1, h2");
+      headings.forEach((el) => observeElement(el, "fade-up", 0));
+
+      const grids = mainEl.querySelectorAll("section .grid");
+      grids.forEach((grid) => {
+        const children = Array.from(grid.children);
+        const isTwoColSplit =
+          children.length === 2 && grid.className.includes("lg:grid-cols-12");
+
+        children.forEach((child, idx) => {
+          if (isTwoColSplit) {
+            observeElement(
+              child,
+              idx === 0 ? "fade-left" : "fade-right",
+              idx * 100
+            );
+          } else {
+            observeElement(child, "zoom-in", (idx % 3) * 85);
+          }
+        });
+      });
+    };
+
+    const timer = setTimeout(registerHomeAnimations, 30);
+    const mutationObserver = new MutationObserver(() => {
+      registerHomeAnimations();
+    });
+    mutationObserver.observe(mainEl, { childList: true, subtree: true });
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [pathname, isHomePage]);
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <main className={`flex-1 ${isHomePage ? "home-scroll-active" : ""}`}>
+      {children}
+    </main>
+  );
+};
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+function App() {
+  return (
+    <AppProvider>
+      <Router>
+        <div className="min-h-screen flex flex-col bg-[#f4f8fd] text-[#0f172a]">
+          <Navbar />
+          <HomeScrollAnimationWrapper>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/products" element={<ProductsCatalogPage />} />
+              <Route path="/products/:id" element={<MachineryDetailPage />} />
+              <Route path="/machinery" element={<ProductsCatalogPage />} />
+              <Route path="/machinery/:id" element={<MachineryDetailPage />} />
+              <Route path="/solutions/start-your-business" element={<StartBusinessPage />} />
+              <Route path="/start-business" element={<StartBusinessPage />} />
+              <Route path="/solutions/find-machinery" element={<FindMachineryPage />} />
+              <Route path="/find-machinery" element={<FindMachineryPage />} />
+              <Route path="/solutions/upgrade-scale" element={<UpgradeMachineryPage />} />
+              <Route path="/upgrade-machinery" element={<UpgradeMachineryPage />} />
+              <Route path="/insights" element={<InsightsPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+            </Routes>
+          </HomeScrollAnimationWrapper>
+          <Footer />
+          <QuoteModal />
+          <Toast />
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      </Router>
+    </AppProvider>
+  );
 }
 
-export default App
+export default App;
