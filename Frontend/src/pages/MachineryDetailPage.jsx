@@ -21,9 +21,15 @@ import {
   Zap,
   Maximize2,
   Scale,
+  Copy,
+  Check,
+  X,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import api from "../utils/api";
+
+const COMPANY_PHONE = "+91 98765 43210";
+const COMPANY_PHONE_RAW = "+919876543210";
 
 const MachineryDetailPage = () => {
   const { id } = useParams();
@@ -32,6 +38,17 @@ const MachineryDetailPage = () => {
   const [item, setItem] = useState(null);
   const [activeImage, setActiveImage] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState(false);
+
+  const handleCopyNumber = () => {
+    navigator.clipboard.writeText(COMPANY_PHONE);
+    setCopiedPhone(true);
+    if (showToast) {
+      showToast("Company contact number copied to clipboard!");
+    }
+    setTimeout(() => setCopiedPhone(false), 2500);
+  };
 
   const [rfqForm, setRfqForm] = useState({
     customerName: "",
@@ -250,13 +267,14 @@ const MachineryDetailPage = () => {
                   <span>REQUEST OFFICIAL QUOTATION (RFQ)</span>
                 </button>
 
-                <a
-                  href="tel:+18004927325"
-                  className="w-full h-11 bg-[#486581] hover:bg-[#334e68] text-white font-mono-tech font-semibold text-xs uppercase tracking-widest rounded flex items-center justify-center gap-2 transition-colors"
+                <button
+                  type="button"
+                  onClick={() => setIsCallModalOpen(true)}
+                  className="w-full h-11 bg-[#486581] hover:bg-[#334e68] text-white font-mono-tech font-semibold text-xs uppercase tracking-widest rounded flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
                   <Phone className="w-3.5 h-3.5" />
                   <span>CALL NOW</span>
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -859,6 +877,140 @@ const MachineryDetailPage = () => {
           </div>
         </div>
       </section>
+      {/* Mobile Sticky Action Bar */}
+      <div className="md:hidden fixed bottom-14 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-2 flex items-center gap-2.5 shadow-lg">
+        <button
+          type="button"
+          onClick={() => setIsCallModalOpen(true)}
+          className="flex-1 h-10 bg-[#486581] hover:bg-[#334e68] text-white font-mono-tech font-bold text-xs uppercase tracking-wider rounded-lg flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+        >
+          <Phone className="w-3.5 h-3.5" />
+          <span>CALL NOW</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => openQuoteModal(currentMachine)}
+          className="flex-1 h-10 bg-[#d97706] hover:bg-[#b45309] text-white font-bold text-xs uppercase tracking-wider rounded-lg flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+        >
+          <FileText className="w-3.5 h-3.5" />
+          <span>GET QUOTE</span>
+        </button>
+      </div>
+
+      {/* Call Now Modal Pop-up (Responsive for Mobile & Desktop) */}
+      {isCallModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setIsCallModalOpen(false)}
+        >
+          <div
+            className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="bg-[#0f172a] text-white p-5 flex items-center justify-between border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#d97706]/20 border border-[#d97706]/40 flex items-center justify-center text-[#d97706]">
+                  <Phone className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold tracking-tight">
+                    Company Contact Hotline
+                  </h3>
+                  <p className="text-[11px] font-mono-tech text-slate-400">
+                    National Engineering Works (ApexBake)
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCallModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-5">
+              <div className="text-center space-y-1">
+                <span className="text-[10px] font-mono-tech uppercase font-bold text-[#334e68] tracking-widest bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200/60 inline-block">
+                  24/7 Technical &amp; Sales Support
+                </span>
+                <p className="text-xs text-slate-600 mt-2">
+                  Speak directly with our senior machinery engineers regarding pricing, plant integration, or custom tooling.
+                </p>
+              </div>
+
+              {/* Company Contact Display Card */}
+              <div className="bg-[#f4f8fd] border border-blue-200/80 rounded-xl p-4 flex flex-col items-center justify-center gap-2">
+                <div className="text-[11px] font-mono-tech text-slate-500 font-semibold uppercase tracking-wider">
+                  Company Contact Number
+                </div>
+                <div className="text-2xl sm:text-3xl font-extrabold font-mono-tech text-[#0f172a] tracking-tight">
+                  {COMPANY_PHONE}
+                </div>
+                <div className="text-[11px] text-emerald-600 font-medium flex items-center gap-1.5 mt-0.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Lines active • Instant dispatch
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2.5">
+                {/* 1-Click Copy Number Button */}
+                <button
+                  type="button"
+                  onClick={handleCopyNumber}
+                  className={`w-full h-12 rounded-xl font-mono-tech font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all shadow-sm cursor-pointer ${
+                    copiedPhone
+                      ? "bg-emerald-600 text-white"
+                      : "bg-[#0f172a] hover:bg-slate-800 text-white"
+                  }`}
+                >
+                  {copiedPhone ? (
+                    <>
+                      <Check className="w-4 h-4 text-white" />
+                      <span>NUMBER COPIED TO CLIPBOARD!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      <span>COPY COMPANY NUMBER</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Quick Direct Call & WhatsApp Row */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  <a
+                    href={`tel:${COMPANY_PHONE_RAW}`}
+                    className="h-11 bg-[#486581] hover:bg-[#334e68] text-white font-mono-tech font-semibold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <Phone className="w-3.5 h-3.5" />
+                    <span>DIRECT CALL</span>
+                  </a>
+                  <a
+                    href={`https://wa.me/${COMPANY_PHONE_RAW.replace(/[^0-9]/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="h-11 bg-[#25D366] hover:bg-[#20ba59] text-white font-mono-tech font-semibold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>WHATSAPP</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Modal Footer note */}
+              <div className="text-[11px] text-center text-slate-400 font-mono-tech">
+                Available 24/7 • National Engineering Works
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
