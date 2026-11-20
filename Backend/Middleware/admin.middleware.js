@@ -1,10 +1,11 @@
 const adminOnly = (req, res, next) => {
-  if (req.user && (req.user.role === "admin" || req.user.role === "manager")) {
+  const role = (req.user?.role || "").toLowerCase();
+  if (role === "admin" || role === "author" || role === "manager") {
     return next();
   }
   return res.status(403).json({
     success: false,
-    message: "Access denied. Administrator privileges required.",
+    message: "Access denied. Administrator or Author privileges required.",
   });
 };
 

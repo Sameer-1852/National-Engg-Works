@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Lock, Mail, Eye, EyeOff, ShieldCheck, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
+import api from "../api";
 
 const LoginPage = ({ onLoginSuccess, allUsers }) => {
   const [email, setEmail] = useState("");
@@ -8,7 +9,7 @@ const LoginPage = ({ onLoginSuccess, allUsers }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -19,34 +20,49 @@ const LoginPage = ({ onLoginSuccess, allUsers }) => {
 
     setLoading(true);
 
-    setTimeout(() => {
-      const normalizedEmail = email.trim().toLowerCase();
-      const matchedUser = allUsers.find(
-        (u) => (u.email || "").toLowerCase() === normalizedEmail
-      );
+    try {
+      // First try live authentication against MongoDB API
+      const res = await api.post("/auth/login", {
+        email: email.trim().toLowerCase(),
+        password: password.trim(),
+      });
 
-      if (!matchedUser) {
-        setError("Account not found with this email. Please check your credentials.");
+      if (res.data?.success && res.data?.data) {
         setLoading(false);
+        onLoginSuccess(res.data.data);
         return;
       }
+    } catch (err) {
+      console.warn("MongoDB API direct login error, verifying with stored user cache:", err.message);
+    }
 
-      if (matchedUser.password !== password) {
-        setError("Invalid password. Please check your password and try again.");
-        setLoading(false);
-        return;
-      }
+    // Fallback verification against MongoDB loaded user list
+    const normalizedEmail = email.trim().toLowerCase();
+    const matchedUser = allUsers.find(
+      (u) => (u.email || "").toLowerCase() === normalizedEmail
+    );
 
-      const role = (matchedUser.role || "").trim().toLowerCase();
-      if (role !== "admin" && role !== "author") {
-        setError("Access Denied: Only Admin or Author accounts are authorized to access the B2B Dashboard.");
-        setLoading(false);
-        return;
-      }
-
+    if (!matchedUser) {
+      setError("Account not found with this email in MongoDB. Please check credentials.");
       setLoading(false);
-      onLoginSuccess(matchedUser);
-    }, 400);
+      return;
+    }
+
+    if (matchedUser.password !== password) {
+      setError("Invalid password. Please check your password and try again.");
+      setLoading(false);
+      return;
+    }
+
+    const role = (matchedUser.role || "").trim().toLowerCase();
+    if (role !== "admin" && role !== "author") {
+      setError("Access Denied: Only Admin or Author accounts are authorized to access the B2B Dashboard.");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(false);
+    onLoginSuccess(matchedUser);
   };
 
   // Quick 1-click preset login buttons for test & review

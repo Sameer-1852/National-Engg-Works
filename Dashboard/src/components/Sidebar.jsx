@@ -55,8 +55,8 @@ const Sidebar = ({
             type="button"
             onClick={() => setActiveTab("overview")}
             className={`w-full flex items-center justify-between px-3.5 py-3 rounded-lg text-xs font-bold transition-colors cursor-pointer ${activeTab === "overview"
-                ? "bg-[#d97706] text-white shadow-sm"
-                : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+              ? "bg-[#d97706] text-white shadow-sm"
+              : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
               }`}
           >
             <span className="flex items-center gap-2.5">
@@ -69,8 +69,8 @@ const Sidebar = ({
             type="button"
             onClick={() => setActiveTab("products")}
             className={`w-full flex items-center justify-between px-3.5 py-3 rounded-lg text-xs font-bold transition-colors cursor-pointer ${activeTab === "products"
-                ? "bg-[#d97706] text-white shadow-sm"
-                : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+              ? "bg-[#d97706] text-white shadow-sm"
+              : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
               }`}
           >
             <span className="flex items-center gap-2.5">
@@ -86,8 +86,8 @@ const Sidebar = ({
             type="button"
             onClick={() => setActiveTab("categories")}
             className={`w-full flex items-center justify-between px-3.5 py-3 rounded-lg text-xs font-bold transition-colors cursor-pointer ${activeTab === "categories"
-                ? "bg-[#d97706] text-white shadow-sm"
-                : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+              ? "bg-[#d97706] text-white shadow-sm"
+              : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
               }`}
           >
             <span className="flex items-center gap-2.5">
@@ -103,8 +103,8 @@ const Sidebar = ({
             type="button"
             onClick={() => setActiveTab("contacts")}
             className={`w-full flex items-center justify-between px-3.5 py-3 rounded-lg text-xs font-bold transition-colors cursor-pointer ${activeTab === "contacts"
-                ? "bg-[#d97706] text-white shadow-sm"
-                : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+              ? "bg-[#d97706] text-white shadow-sm"
+              : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
               }`}
           >
             <span className="flex items-center gap-2.5">
@@ -120,8 +120,8 @@ const Sidebar = ({
             type="button"
             onClick={() => setActiveTab("quotations")}
             className={`w-full flex items-center justify-between px-3.5 py-3 rounded-lg text-xs font-bold transition-colors cursor-pointer ${activeTab === "quotations"
-                ? "bg-[#d97706] text-white shadow-sm"
-                : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+              ? "bg-[#d97706] text-white shadow-sm"
+              : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
               }`}
           >
             <span className="flex items-center gap-2.5">
@@ -148,8 +148,8 @@ const Sidebar = ({
               type="button"
               onClick={() => setActiveTab("users")}
               className={`w-full flex items-center justify-between px-3.5 py-3 rounded-lg text-xs font-bold transition-colors cursor-pointer ${activeTab === "users"
-                  ? "bg-purple-700 text-white shadow-sm"
-                  : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                ? "bg-purple-700 text-white shadow-sm"
+                : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
                 }`}
             >
               <span className="flex items-center gap-2.5">
@@ -172,8 +172,8 @@ const Sidebar = ({
             <div className="flex items-center justify-between mb-1.5">
               <span
                 className={`text-[9.5px] font-mono-tech font-extrabold uppercase px-2 py-0.5 rounded tracking-wider ${isAuthor
-                    ? "bg-purple-900/80 text-purple-200 border border-purple-700"
-                    : "bg-amber-900/80 text-amber-200 border border-amber-700"
+                  ? "bg-purple-900/80 text-purple-200 border border-purple-700"
+                  : "bg-amber-900/80 text-amber-200 border border-amber-700"
                   }`}
               >
                 ROLE: {currentUser.role || "ADMIN"}
@@ -200,7 +200,7 @@ const Sidebar = ({
         )}
 
         {/* Backend Online status */}
-        <div className="bg-[#162235] rounded-lg p-2.5 border border-slate-700/80">
+        {/* <div className="bg-[#162235] rounded-lg p-2.5 border border-slate-700/80">
           <div className="flex items-center gap-2 text-[10.5px] font-mono-tech">
             <span
               className={`w-2 h-2 rounded-full ${backendConnected ? "bg-emerald-400" : "bg-red-500"
@@ -213,7 +213,7 @@ const Sidebar = ({
           <div className="text-[9.5px] font-mono-tech text-slate-400 mt-0.5">
             Port 3000 &bull; MongoDB Atlas
           </div>
-        </div>
+        </div> */}
       </div>
     </aside>
   );

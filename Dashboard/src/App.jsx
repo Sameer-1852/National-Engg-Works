@@ -245,38 +245,89 @@ function App() {
     showToast("Signed out of Dashboard successfully.", "success");
   };
 
-  // Author User Management Handlers
-  const handleAddUser = (userData) => {
-    const newUser = {
-      id: `usr-${Date.now()}`,
-      ...userData,
-      createdAt: new Date().toISOString(),
-    };
-    setAllUsers((prev) => [newUser, ...prev]);
-    return true;
+  // Author User Management Handlers (Direct MongoDB Integration)
+  const handleAddUser = async (userData) => {
+    try {
+      const res = await api.post("/admin/users", userData);
+      const created = res.data?.data;
+      if (created) {
+        setAllUsers((prev) => [
+          created,
+          ...prev.filter(
+            (u) =>
+              (u._id || u.id) !== (created._id || created.id) &&
+              u.email !== created.email
+          ),
+        ]);
+      }
+      showToast(
+        `Added new ${userData.role} "${userData.name}" to MongoDB!`,
+        "success"
+      );
+      fetchAllData();
+      return true;
+    } catch (err) {
+      const errorMsg =
+        err.response?.data?.message || "Failed to save user in MongoDB.";
+      showToast(errorMsg, "error");
+      return false;
+    }
   };
 
-  const handleRoleChange = (userId, newRole) => {
-    setAllUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
-    );
+  const handleRoleChange = async (userId, newRole) => {
+    try {
+      await api.put(`/admin/users/${userId}`, { role: newRole });
+      setAllUsers((prev) =>
+        prev.map((u) =>
+          (u._id === userId || u.id === userId) ? { ...u, role: newRole } : u
+        )
+      );
+      showToast(`User role updated to ${newRole} in MongoDB!`, "success");
+      fetchAllData();
+    } catch (err) {
+      showToast(
+        err.response?.data?.message || "Failed to update role in MongoDB.",
+        "error"
+      );
+    }
   };
 
-  const handleDeleteUser = (userId) => {
-    setAllUsers((prev) => prev.filter((u) => u.id !== userId));
+  const handleDeleteUser = async (userId) => {
+    try {
+      await api.delete(`/admin/users/${userId}`);
+      setAllUsers((prev) =>
+        prev.filter((u) => u._id !== userId && u.id !== userId)
+      );
+      showToast("User permanently removed from MongoDB!", "success");
+      fetchAllData();
+    } catch (err) {
+      showToast(
+        err.response?.data?.message || "Failed to delete user from MongoDB.",
+        "error"
+      );
+    }
   };
 
   const fetchAllData = useCallback(async () => {
     try {
       setLoading(true);
-      const [machRes, catRes, enqRes] = await Promise.all([
+      const [machRes, catRes, enqRes, usersRes] = await Promise.all([
         api.get("/machinery"),
         api.get("/categories"),
         api.get("/enquiries"),
+        api.get("/admin/users").catch(() => ({ data: { data: [] } })),
       ]);
       setProducts(machRes.data?.data || []);
       setCategories(catRes.data?.data || []);
       setEnquiries(enqRes.data?.data || []);
+
+      if (
+        usersRes.data?.data &&
+        Array.isArray(usersRes.data.data) &&
+        usersRes.data.data.length > 0
+      ) {
+        setAllUsers(usersRes.data.data);
+      }
       setBackendConnected(true);
     } catch (err) {
       console.error("Backend sync error:", err.message);
@@ -291,10 +342,8 @@ function App() {
   }, [showToast]);
 
   useEffect(() => {
-    if (currentUser) {
-      fetchAllData();
-    }
-  }, [currentUser, fetchAllData]);
+    fetchAllData();
+  }, [fetchAllData]);
 
   // ============================================================================
   // UP TO 4 IMAGES UPLOAD FROM COMPUTER HANDLERS (NO DUMMY IMAGES)
@@ -827,8 +876,8 @@ function App() {
         {toast && (
           <div
             className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-lg shadow-xl border text-xs font-bold transition-all ${toast.type === "error"
-                ? "bg-red-950 text-red-100 border-red-700"
-                : "bg-[#0d1829] text-white border-[#d97706]"
+              ? "bg-red-950 text-red-100 border-red-700"
+              : "bg-[#0d1829] text-white border-[#d97706]"
               }`}
           >
             {toast.type === "error" ? (

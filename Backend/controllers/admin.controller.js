@@ -3,6 +3,7 @@ const Product = require("../models/Product.model");
 const Machinery = require("../models/Machinery.model");
 const Category = require("../models/Category.model");
 const User = require("../models/User.model");
+const bcrypt = require("bcryptjs");
 
 const getDashboardOverview = async (req, res, next) => {
   try {
@@ -64,11 +65,129 @@ const getDashboardOverview = async (req, res, next) => {
 
 const getAdminUsers = async (req, res, next) => {
   try {
-    const users = await User.find().select("-password").sort({ createdAt: -1 });
+    const users = await User.find().sort({ createdAt: -1 });
+    const formatted = users.map((u) => ({
+      _id: u._id,
+      id: u._id.toString(),
+      name: u.name,
+      email: u.email,
+      phone: u.phone || "",
+      companyName: u.companyName,
+      role: u.role || "Admin",
+      password: u.plainPassword || "Admin@123",
+      createdAt: u.createdAt,
+    }));
     res.json({
       success: true,
-      count: users.length,
-      data: users,
+      count: formatted.length,
+      data: formatted,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const createAdminUser = async (req, res, next) => {
+  try {
+    const { name, email, password, role, phone, companyName } = req.body;
+    if (!name || !email || !password) {
+      res.status(400);
+      throw new Error("Please provide name, email, and password");
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const existing = await User.findOne({ email: normalizedEmail });
+    if (existing) {
+      res.status(400);
+      throw new Error("User already exists in MongoDB with this email");
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newUser = await User.create({
+      name: name.trim(),
+      email: normalizedEmail,
+      password: hashedPassword,
+      plainPassword: password,
+      role: role || "Admin",
+      phone: phone || "",
+      companyName: companyName || "NEW – National Engineering Works",
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Admin/Author user created successfully in MongoDB",
+      data: {
+        _id: newUser._id,
+        id: newUser._id.toString(),
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        password: newUser.plainPassword,
+        phone: newUser.phone,
+        createdAt: newUser.createdAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateAdminUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { role, name, phone, password } = req.body;
+
+    const user = await User.findById(id);
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found in MongoDB");
+    }
+
+    if (role) user.role = role;
+    if (name) user.name = name;
+    if (phone !== undefined) user.phone = phone;
+    if (password) {
+      user.plainPassword = password;
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+    }
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "User updated successfully in MongoDB",
+      data: {
+        _id: user._id,
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        password: user.plainPassword || "Admin@123",
+        phone: user.phone,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteAdminUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found in MongoDB");
+    }
+
+    await User.findByIdAndDelete(id);
+    res.json({
+      success: true,
+      message: `User ${user.email} deleted successfully from MongoDB`,
     });
   } catch (error) {
     next(error);
@@ -116,5 +235,8 @@ const getAdminAnalytics = async (req, res, next) => {
 module.exports = {
   getDashboardOverview,
   getAdminUsers,
+  createAdminUser,
+  updateAdminUser,
+  deleteAdminUser,
   getAdminAnalytics,
 };

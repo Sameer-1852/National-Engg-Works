@@ -81,7 +81,7 @@ const AdminUsersPage = ({
     setIsAddModalOpen(true);
   };
 
-  const handleCreateUserSubmit = (e) => {
+  const handleCreateUserSubmit = async (e) => {
     e.preventDefault();
     if (!isAuthor) {
       showToast("Access Denied: Only an Author can add new users.", "error");
@@ -102,7 +102,7 @@ const AdminUsersPage = ({
       return;
     }
 
-    const created = onAddUser({
+    const success = await onAddUser({
       name: newUserForm.name.trim(),
       email: newUserForm.email.trim().toLowerCase(),
       password: newUserForm.password.trim(),
@@ -110,12 +110,8 @@ const AdminUsersPage = ({
       phone: newUserForm.phone.trim(),
     });
 
-    if (created) {
+    if (success) {
       setIsAddModalOpen(false);
-      showToast(
-        `Added new ${newUserForm.role}: "${newUserForm.name}" (${newUserForm.email})!`,
-        "success"
-      );
     }
   };
 
@@ -124,12 +120,13 @@ const AdminUsersPage = ({
       showToast("Access Denied: Only Author can change user roles.", "error");
       return;
     }
-    if (user.id === currentUser?.id || user.email === currentUser?.email) {
+    const currentId = currentUser?._id || currentUser?.id;
+    const userId = user._id || user.id;
+    if (userId === currentId || user.email === currentUser?.email) {
       showToast("You cannot change your own active Author role.", "error");
       return;
     }
-    onRoleChange(user.id, newRole);
-    showToast(`Updated role for ${user.name} to ${newRole}!`, "success");
+    onRoleChange(userId, newRole);
   };
 
   const handleDeleteClick = (user) => {
@@ -137,13 +134,14 @@ const AdminUsersPage = ({
       showToast("Access Denied: Only Author can delete admin users.", "error");
       return;
     }
-    if (user.id === currentUser?.id || user.email === currentUser?.email) {
+    const currentId = currentUser?._id || currentUser?.id;
+    const userId = user._id || user.id;
+    if (userId === currentId || user.email === currentUser?.email) {
       showToast("You cannot delete your own currently logged-in account.", "error");
       return;
     }
-    if (window.confirm(`Are you sure you want to delete ${user.role} "${user.name}" (${user.email})?`)) {
-      onDeleteUser(user.id);
-      showToast(`Deleted ${user.role} user "${user.name}" successfully.`, "success");
+    if (window.confirm(`Are you sure you want to delete ${user.role} "${user.name}" (${user.email}) from MongoDB?`)) {
+      onDeleteUser(userId);
     }
   };
 
@@ -269,11 +267,14 @@ const AdminUsersPage = ({
             <tbody className="divide-y divide-slate-200">
               {filteredUsers.map((user, idx) => {
                 const userIsAuthor = (user.role || "").toLowerCase() === "author";
-                const isCurrent = user.id === currentUser?.id || user.email === currentUser?.email;
-                const isPasswordRevealed = Boolean(showPasswords[user.id]);
+                const uid = user._id || user.id;
+                const isCurrent =
+                  uid === (currentUser?._id || currentUser?.id) ||
+                  user.email === currentUser?.email;
+                const isPasswordRevealed = Boolean(showPasswords[uid]);
 
                 return (
-                  <tr key={user.id || user.email} className="hover:bg-slate-50 transition-colors">
+                  <tr key={uid || user.email} className="hover:bg-slate-50 transition-colors">
                     {/* Index */}
                     <td className="py-4 px-4 font-mono-tech font-bold text-slate-400">
                       {String(idx + 1).padStart(2, "0")}
@@ -326,7 +327,7 @@ const AdminUsersPage = ({
                         </span>
                         <button
                           type="button"
-                          onClick={() => togglePasswordVisibility(user.id)}
+                          onClick={() => togglePasswordVisibility(uid)}
                           className="ml-1 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer"
                           title={isPasswordRevealed ? "Hide Password" : "Show Password"}
                         >
