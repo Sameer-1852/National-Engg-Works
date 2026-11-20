@@ -15,6 +15,8 @@ import ProductsPage from "./pages/ProductsPage";
 import CategoriesPage from "./pages/CategoriesPage";
 import ContactsPage from "./pages/ContactsPage";
 import RequestQuotationPage from "./pages/RequestQuotationPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
+import LoginPage from "./pages/LoginPage";
 
 const ENQUIRY_STATUSES = [
   "New",
@@ -23,6 +25,36 @@ const ENQUIRY_STATUSES = [
   "In Progress",
   "Completed",
   "Rejected",
+];
+
+const INITIAL_USERS = [
+  {
+    id: "usr-author-1",
+    name: "Master Author (Founder)",
+    email: "author@new-engineering.com",
+    password: "Author@123",
+    role: "Author",
+    phone: "+91 98201 44820",
+    createdAt: "2026-01-10T10:00:00.000Z",
+  },
+  {
+    id: "usr-admin-1",
+    name: "Chief Systems Admin",
+    email: "admin@new-engineering.com",
+    password: "Admin@123",
+    role: "Admin",
+    phone: "+91 98110 32145",
+    createdAt: "2026-01-15T11:30:00.000Z",
+  },
+  {
+    id: "usr-admin-2",
+    name: "Plant Machinery Admin",
+    email: "plant.admin@gmail.com",
+    password: "Admin@456",
+    role: "Admin",
+    phone: "+91 99200 88310",
+    createdAt: "2026-02-01T14:20:00.000Z",
+  },
 ];
 
 const DEFAULT_SPECS = [
@@ -89,6 +121,57 @@ function App() {
   const [deletingId, setDeletingId] = useState(null);
   const fileInputRef = useRef(null);
 
+  // User Management & Authentication State
+  const [allUsers, setAllUsers] = useState(() => {
+    try {
+      const stored = localStorage.getItem("apex_dashboard_all_users");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error("Error reading stored users:", e);
+    }
+    return INITIAL_USERS;
+  });
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem("apex_dashboard_user");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && (parsed.role === "Admin" || parsed.role === "Author")) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error("Error reading stored current user:", e);
+    }
+    return null;
+  });
+
+  // Sync users to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem("apex_dashboard_all_users", JSON.stringify(allUsers));
+    } catch (e) {
+      console.error("Error saving users:", e);
+    }
+  }, [allUsers]);
+
+  // Sync current logged in user to localStorage
+  useEffect(() => {
+    try {
+      if (currentUser) {
+        localStorage.setItem("apex_dashboard_user", JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem("apex_dashboard_user");
+      }
+    } catch (e) {
+      console.error("Error syncing current user:", e);
+    }
+  }, [currentUser]);
+
   // Filters & Search
   const [productSearch, setProductSearch] = useState("");
   const [productCategoryFilter, setProductCategoryFilter] = useState("All");
@@ -152,6 +235,37 @@ function App() {
     setTimeout(() => setToast(null), 4200);
   }, []);
 
+  const handleLogin = (user) => {
+    setCurrentUser(user);
+    showToast(`Welcome, ${user.name}! Authenticated as ${user.role}.`, "success");
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    showToast("Signed out of Dashboard successfully.", "success");
+  };
+
+  // Author User Management Handlers
+  const handleAddUser = (userData) => {
+    const newUser = {
+      id: `usr-${Date.now()}`,
+      ...userData,
+      createdAt: new Date().toISOString(),
+    };
+    setAllUsers((prev) => [newUser, ...prev]);
+    return true;
+  };
+
+  const handleRoleChange = (userId, newRole) => {
+    setAllUsers((prev) =>
+      prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+    );
+  };
+
+  const handleDeleteUser = (userId) => {
+    setAllUsers((prev) => prev.filter((u) => u.id !== userId));
+  };
+
   const fetchAllData = useCallback(async () => {
     try {
       setLoading(true);
@@ -177,8 +291,10 @@ function App() {
   }, [showToast]);
 
   useEffect(() => {
-    fetchAllData();
-  }, [fetchAllData]);
+    if (currentUser) {
+      fetchAllData();
+    }
+  }, [currentUser, fetchAllData]);
 
   // ============================================================================
   // UP TO 4 IMAGES UPLOAD FROM COMPUTER HANDLERS (NO DUMMY IMAGES)
@@ -285,7 +401,7 @@ function App() {
   };
 
   // ============================================================================
-  // 1. PRODUCT ADD / UPDATE / DELETE HANDLERS
+  // 1. PRODUCT ADD / UPDATE / DELETE HANDLERS (ADMIN & AUTHOR PRIVILEGE)
   // ============================================================================
   const openAddProductModal = () => {
     setEditingProduct(null);
@@ -582,7 +698,7 @@ function App() {
     try {
       setEnquiries((prev) => prev.filter((e) => e._id !== id));
       await api.delete(`/enquiries/${id}`);
-      showToast("Deleted inquiry record.");
+      showToast("Deleted inquiry record from MongoDB.");
       if (selectedEnquiry && selectedEnquiry._id === id) {
         setSelectedEnquiry(null);
       }
@@ -670,6 +786,16 @@ function App() {
     }
   };
 
+  // IF NOT AUTHENTICATED: DISPLAY ADMIN LOGIN PAGE
+  if (!currentUser) {
+    return (
+      <LoginPage
+        onLoginSuccess={handleLogin}
+        allUsers={allUsers}
+      />
+    );
+  }
+
   return (
     <div className="h-screen overflow-hidden flex bg-[#f1f5f9] text-[#0f172a]">
       {/* LEFT SIDEBAR (FIXED / LOCKED ON SCROLL) */}
@@ -679,7 +805,10 @@ function App() {
         productsCount={products.length}
         categoriesCount={categories.length}
         enquiriesCount={enquiries.length}
+        usersCount={allUsers.length}
         backendConnected={backendConnected}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
 
       {/* RIGHT MAIN WORKSPACE (INDEPENDENT SCROLLING AREA) */}
@@ -690,6 +819,8 @@ function App() {
           loading={loading}
           fetchAllData={fetchAllData}
           openAddProductModal={openAddProductModal}
+          currentUser={currentUser}
+          onLogout={handleLogout}
         />
 
         {/* TOAST NOTIFICATION */}
@@ -785,6 +916,17 @@ function App() {
               setSelectedEnquiry={setSelectedEnquiry}
               handleEnquiryStatusChange={handleEnquiryStatusChange}
               handleDeleteEnquiry={handleDeleteEnquiry}
+            />
+          )}
+
+          {activeTab === "users" && (
+            <AdminUsersPage
+              allUsers={allUsers}
+              currentUser={currentUser}
+              onAddUser={handleAddUser}
+              onRoleChange={handleRoleChange}
+              onDeleteUser={handleDeleteUser}
+              showToast={showToast}
             />
           )}
         </main>
