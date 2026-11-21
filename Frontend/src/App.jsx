@@ -21,7 +21,7 @@ const HomeScrollAnimationWrapper = ({ children }) => {
   const isHomePage = pathname === "/";
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
 
     const mainEl = document.querySelector("main");
     if (!mainEl) return;

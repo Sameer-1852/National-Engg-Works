@@ -27,36 +27,6 @@ const ENQUIRY_STATUSES = [
   "Rejected",
 ];
 
-const INITIAL_USERS = [
-  {
-    id: "usr-author-1",
-    name: "Master Author (Founder)",
-    email: "author@new-engineering.com",
-    password: "Author@123",
-    role: "Author",
-    phone: "+91 98201 44820",
-    createdAt: "2026-01-10T10:00:00.000Z",
-  },
-  {
-    id: "usr-admin-1",
-    name: "Chief Systems Admin",
-    email: "admin@new-engineering.com",
-    password: "Admin@123",
-    role: "Admin",
-    phone: "+91 98110 32145",
-    createdAt: "2026-01-15T11:30:00.000Z",
-  },
-  {
-    id: "usr-admin-2",
-    name: "Plant Machinery Admin",
-    email: "plant.admin@gmail.com",
-    password: "Admin@456",
-    role: "Admin",
-    phone: "+91 99200 88310",
-    createdAt: "2026-02-01T14:20:00.000Z",
-  },
-];
-
 const DEFAULT_SPECS = [
   { parameter: "Model Number", value: "AB-SM250S", notes: "Apex Industrial Series" },
   { parameter: "Machine Classification", value: "Heavy-Duty Industrial Bakery System", notes: "Continuous 24/7 duty rating" },
@@ -114,6 +84,8 @@ function App() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [enquiries, setEnquiries] = useState([]);
+  const [contacts, setContacts] = useState([]);
+  const [quotations, setQuotations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [backendConnected, setBackendConnected] = useState(true);
   const [toast, setToast] = useState(null);
@@ -121,19 +93,8 @@ function App() {
   const [deletingId, setDeletingId] = useState(null);
   const fileInputRef = useRef(null);
 
-  // User Management & Authentication State
-  const [allUsers, setAllUsers] = useState(() => {
-    try {
-      const stored = localStorage.getItem("apex_dashboard_all_users");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch (e) {
-      console.error("Error reading stored users:", e);
-    }
-    return INITIAL_USERS;
-  });
+  // User Management & Authentication State - Live MongoDB Users only (No dummy data)
+  const [allUsers, setAllUsers] = useState([]);
 
   const [currentUser, setCurrentUser] = useState(() => {
     try {
@@ -150,14 +111,14 @@ function App() {
     return null;
   });
 
-  // Sync users to localStorage
+  // Clear any legacy dummy users from localStorage
   useEffect(() => {
     try {
-      localStorage.setItem("apex_dashboard_all_users", JSON.stringify(allUsers));
+      localStorage.removeItem("apex_dashboard_all_users");
     } catch (e) {
-      console.error("Error saving users:", e);
+      console.error("Error clearing legacy user cache:", e);
     }
-  }, [allUsers]);
+  }, []);
 
   // Sync current logged in user to localStorage
   useEffect(() => {
@@ -308,24 +269,35 @@ function App() {
     }
   };
 
+  const fetchUsers = useCallback(async () => {
+    try {
+      const usersRes = await api.get("/admin/users");
+      if (usersRes.data && Array.isArray(usersRes.data.data)) {
+        setAllUsers(usersRes.data.data);
+      }
+    } catch (err) {
+      console.warn("Could not fetch admin users from MongoDB:", err.message);
+    }
+  }, []);
+
   const fetchAllData = useCallback(async () => {
     try {
       setLoading(true);
-      const [machRes, catRes, enqRes, usersRes] = await Promise.all([
+      const [machRes, catRes, enqRes, usersRes, contactsRes, quotesRes] = await Promise.all([
         api.get("/machinery"),
         api.get("/categories"),
-        api.get("/enquiries"),
+        api.get("/enquiries").catch(() => ({ data: { data: [] } })),
         api.get("/admin/users").catch(() => ({ data: { data: [] } })),
+        api.get("/contacts").catch(() => ({ data: { data: [] } })),
+        api.get("/quotations").catch(() => ({ data: { data: [] } })),
       ]);
       setProducts(machRes.data?.data || []);
       setCategories(catRes.data?.data || []);
       setEnquiries(enqRes.data?.data || []);
+      setContacts(contactsRes.data?.data || []);
+      setQuotations(quotesRes.data?.data || []);
 
-      if (
-        usersRes.data?.data &&
-        Array.isArray(usersRes.data.data) &&
-        usersRes.data.data.length > 0
-      ) {
+      if (usersRes.data && Array.isArray(usersRes.data.data)) {
         setAllUsers(usersRes.data.data);
       }
       setBackendConnected(true);
@@ -344,6 +316,21 @@ function App() {
   useEffect(() => {
     fetchAllData();
   }, [fetchAllData]);
+
+  // Refresh data from MongoDB when switching tabs
+  useEffect(() => {
+    if (activeTab === "users") {
+      fetchUsers();
+    } else if (activeTab === "contacts") {
+      api.get("/contacts").then((res) => {
+        if (res.data?.data) setContacts(res.data.data);
+      }).catch(() => { });
+    } else if (activeTab === "quotations") {
+      api.get("/quotations").then((res) => {
+        if (res.data?.data) setQuotations(res.data.data);
+      }).catch(() => { });
+    }
+  }, [activeTab, fetchUsers]);
 
   // ============================================================================
   // UP TO 4 IMAGES UPLOAD FROM COMPUTER HANDLERS (NO DUMMY IMAGES)
@@ -781,8 +768,99 @@ function App() {
     });
   }, [products, productCategoryFilter, productSearch]);
 
-  const filteredEnquiries = useMemo(() => {
+  // Only enquiries filled or submitted from the website Contact Page (excludes dummy seed data & quotations from other pages)
+  const contactPageEnquiries = useMemo(() => {
+    const dummyEmails = [
+      "m.vance@continentalbakery.com",
+      "a.lindgren@nordicbake.se",
+      "r.malhotra@heritagebaking.in",
+      "d.weber@eurobread.de",
+    ];
+
     return enquiries.filter((e) => {
+      // Exclude seed/dummy enquiries
+      if (dummyEmails.includes((e.email || "").toLowerCase())) {
+        return false;
+      }
+
+      const type = (e.enquiryType || "").toLowerCase();
+
+      // Exclude submissions from other pages (Home RFQ, Detail RFQ, Startup Venture, Bulletin, Callback)
+      const isFromOtherPage =
+        type.includes("rfq") ||
+        type.includes("quotation") ||
+        type.includes("quote") ||
+        type.includes("startup") ||
+        type.includes("bulletin") ||
+        type.includes("callback");
+
+      if (isFromOtherPage) {
+        return false;
+      }
+
+      // Must be from the Contact Page (Direct Engineering Inquiry, Contact Us, or contact form fields)
+      return (
+        type.includes("direct engineering") ||
+        type.includes("contact") ||
+        type === "business enquiry" ||
+        Boolean(e.facilityLocation || e.roleTitle || e.engineeringDiscipline)
+      );
+    });
+  }, [enquiries]);
+
+  // Live Contact model records from /api/contacts + contact page submissions
+  const allContacts = useMemo(() => {
+    const list = [...contacts];
+    contactPageEnquiries.forEach((e) => {
+      const eid = String(e._id || e.id);
+      if (!list.some((c) => String(c._id || c.id) === eid)) {
+        list.push(e);
+      }
+    });
+    return list;
+  }, [contacts, contactPageEnquiries]);
+
+  // Quotation requests only - strictly excludes all Contact Page submissions & dummy seed data
+  const quotationEnquiries = useMemo(() => {
+    const contactIds = new Set(
+      allContacts.map((c) => String(c._id || c.id))
+    );
+    const dummyEmails = [
+      "m.vance@continentalbakery.com",
+      "a.lindgren@nordicbake.se",
+      "r.malhotra@heritagebaking.in",
+      "d.weber@eurobread.de",
+    ];
+
+    return enquiries.filter((e) => {
+      const eid = String(e._id || e.id);
+      // Exclude any record that belongs to the Contact Page
+      if (contactIds.has(eid)) {
+        return false;
+      }
+      // Exclude seed/dummy enquiries
+      if (dummyEmails.includes((e.email || "").toLowerCase())) {
+        return false;
+      }
+      return true;
+    });
+  }, [enquiries, allContacts]);
+
+  // Live RequestQuotation model records from /api/quotations + quotation enquiries
+  const allQuotations = useMemo(() => {
+    const contactIds = new Set(allContacts.map((c) => String(c._id || c.id)));
+    const list = [...quotations];
+    quotationEnquiries.forEach((q) => {
+      const qid = String(q._id || q.id);
+      if (!contactIds.has(qid) && !list.some((item) => String(item._id || item.id) === qid)) {
+        list.push(q);
+      }
+    });
+    return list;
+  }, [quotations, quotationEnquiries, allContacts]);
+
+  const filteredContactEnquiries = useMemo(() => {
+    return allContacts.filter((e) => {
       if (
         enquiryStatusFilter !== "All" &&
         e.status !== enquiryStatusFilter
@@ -809,12 +887,84 @@ function App() {
       }
       return true;
     });
-  }, [enquiries, enquiryStatusFilter, enquiryTypeFilter, enquirySearch]);
+  }, [allContacts, enquiryStatusFilter, enquiryTypeFilter, enquirySearch]);
 
-  const enquiryTypes = useMemo(() => {
-    const types = new Set(enquiries.map((e) => e.enquiryType).filter(Boolean));
+  const contactEnquiryTypes = useMemo(() => {
+    const types = new Set(allContacts.map((e) => e.enquiryType || "Direct Contact").filter(Boolean));
     return ["All", ...Array.from(types)];
-  }, [enquiries]);
+  }, [allContacts]);
+
+  // Handlers for separate Contact Model (MongoDB: contacts collection)
+  const handleContactStatusChange = async (id, newStatus) => {
+    try {
+      await api.put(`/contacts/${id}`, { status: newStatus }).catch(() => api.put(`/enquiries/${id}`, { status: newStatus }));
+      setContacts((prev) =>
+        prev.map((c) => ((c._id === id || c.id === id) ? { ...c, status: newStatus } : c))
+      );
+      setEnquiries((prev) =>
+        prev.map((e) => ((e._id === id || e.id === id) ? { ...e, status: newStatus } : e))
+      );
+      showToast(`Contact status updated to "${newStatus}" in MongoDB!`);
+      if (selectedEnquiry && (selectedEnquiry._id === id || selectedEnquiry.id === id)) {
+        setSelectedEnquiry((prev) => ({ ...prev, status: newStatus }));
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to update contact status", "error");
+    }
+  };
+
+  const handleDeleteContact = async (id) => {
+    if (!window.confirm("Are you sure you want to permanently delete this contact submission from MongoDB?")) {
+      return;
+    }
+    try {
+      setContacts((prev) => prev.filter((c) => c._id !== id && c.id !== id));
+      setEnquiries((prev) => prev.filter((e) => e._id !== id && e.id !== id));
+      await api.delete(`/contacts/${id}`).catch(() => api.delete(`/enquiries/${id}`));
+      showToast("Contact submission permanently removed from MongoDB.");
+      if (selectedEnquiry && (selectedEnquiry._id === id || selectedEnquiry.id === id)) {
+        setSelectedEnquiry(null);
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to delete contact record", "error");
+    }
+  };
+
+  // Handlers for separate RequestQuotation Model (MongoDB: requestquotations collection)
+  const handleQuotationStatusChange = async (id, newStatus) => {
+    try {
+      await api.put(`/quotations/${id}`, { status: newStatus }).catch(() => api.put(`/enquiries/${id}`, { status: newStatus }));
+      setQuotations((prev) =>
+        prev.map((q) => ((q._id === id || q.id === id) ? { ...q, status: newStatus } : q))
+      );
+      setEnquiries((prev) =>
+        prev.map((e) => ((e._id === id || e.id === id) ? { ...e, status: newStatus } : e))
+      );
+      showToast(`Quotation status updated to "${newStatus}" in MongoDB!`);
+      if (selectedEnquiry && (selectedEnquiry._id === id || selectedEnquiry.id === id)) {
+        setSelectedEnquiry((prev) => ({ ...prev, status: newStatus }));
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to update quotation status", "error");
+    }
+  };
+
+  const handleDeleteQuotation = async (id) => {
+    if (!window.confirm("Are you sure you want to permanently delete this request quotation from MongoDB?")) {
+      return;
+    }
+    try {
+      setQuotations((prev) => prev.filter((q) => q._id !== id && q.id !== id));
+      setEnquiries((prev) => prev.filter((e) => e._id !== id && e.id !== id));
+      await api.delete(`/quotations/${id}`).catch(() => api.delete(`/enquiries/${id}`));
+      showToast("Quotation request permanently removed from MongoDB.");
+      if (selectedEnquiry && (selectedEnquiry._id === id || selectedEnquiry.id === id)) {
+        setSelectedEnquiry(null);
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to delete quotation record", "error");
+    }
+  };
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -853,7 +1003,8 @@ function App() {
         setActiveTab={setActiveTab}
         productsCount={products.length}
         categoriesCount={categories.length}
-        enquiriesCount={enquiries.length}
+        enquiriesCount={allContacts.length}
+        quotationsCount={allQuotations.length}
         usersCount={allUsers.length}
         backendConnected={backendConnected}
         currentUser={currentUser}
@@ -895,7 +1046,7 @@ function App() {
             <OverviewPage
               products={products}
               categories={categories}
-              enquiries={enquiries}
+              enquiries={allContacts}
               setActiveTab={setActiveTab}
               setEnquiryStatusFilter={setEnquiryStatusFilter}
               openAddProductModal={openAddProductModal}
@@ -941,30 +1092,30 @@ function App() {
 
           {activeTab === "contacts" && (
             <ContactsPage
-              filteredEnquiries={filteredEnquiries}
+              filteredEnquiries={filteredContactEnquiries}
               enquirySearch={enquirySearch}
               setEnquirySearch={setEnquirySearch}
               enquiryStatusFilter={enquiryStatusFilter}
               setEnquiryStatusFilter={setEnquiryStatusFilter}
               enquiryTypeFilter={enquiryTypeFilter}
               setEnquiryTypeFilter={setEnquiryTypeFilter}
-              enquiryTypes={enquiryTypes}
+              enquiryTypes={contactEnquiryTypes}
               ENQUIRY_STATUSES={ENQUIRY_STATUSES}
               getStatusBadge={getStatusBadge}
               setSelectedEnquiry={setSelectedEnquiry}
-              handleEnquiryStatusChange={handleEnquiryStatusChange}
-              handleDeleteEnquiry={handleDeleteEnquiry}
+              handleEnquiryStatusChange={handleContactStatusChange}
+              handleDeleteEnquiry={handleDeleteContact}
             />
           )}
 
           {activeTab === "quotations" && (
             <RequestQuotationPage
-              enquiries={enquiries}
+              enquiries={allQuotations}
               ENQUIRY_STATUSES={ENQUIRY_STATUSES}
               getStatusBadge={getStatusBadge}
               setSelectedEnquiry={setSelectedEnquiry}
-              handleEnquiryStatusChange={handleEnquiryStatusChange}
-              handleDeleteEnquiry={handleDeleteEnquiry}
+              handleEnquiryStatusChange={handleQuotationStatusChange}
+              handleDeleteEnquiry={handleDeleteQuotation}
             />
           )}
 
@@ -976,6 +1127,7 @@ function App() {
               onRoleChange={handleRoleChange}
               onDeleteUser={handleDeleteUser}
               showToast={showToast}
+              onRefreshUsers={fetchUsers}
             />
           )}
         </main>

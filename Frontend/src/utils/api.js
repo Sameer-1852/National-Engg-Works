@@ -4,10 +4,61 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api"
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 6000,
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+// Fast in-memory cache and in-flight request deduplication for instant product loading
+const responseCache = new Map();
+const inFlightRequests = new Map();
+
+const originalGet = api.get.bind(api);
+
+api.get = (url, config = {}) => {
+  if (config.noCache) {
+    return originalGet(url, config);
+  }
+
+  // Cache catalog and product endpoints for ultra-fast response
+  if (
+    url === "/machinery" ||
+    url === "/categories" ||
+    url === "/products" ||
+    url.startsWith("/machinery/") ||
+    url.startsWith("/categories/")
+  ) {
+    const cacheKey = `${url}_${JSON.stringify(config.params || {})}`;
+
+    if (responseCache.has(cacheKey)) {
+      const entry = responseCache.get(cacheKey);
+      if (Date.now() - entry.timestamp < 60000) {
+        return Promise.resolve(entry.data);
+      }
+    }
+
+    if (inFlightRequests.has(cacheKey)) {
+      return inFlightRequests.get(cacheKey);
+    }
+
+    const reqPromise = originalGet(url, config)
+      .then((res) => {
+        responseCache.set(cacheKey, { data: res, timestamp: Date.now() });
+        inFlightRequests.delete(cacheKey);
+        return res;
+      })
+      .catch((err) => {
+        inFlightRequests.delete(cacheKey);
+        throw err;
+      });
+
+    inFlightRequests.set(cacheKey, reqPromise);
+    return reqPromise;
+  }
+
+  return originalGet(url, config);
+};
 
 export const FALLBACK_CATEGORIES = [
   {

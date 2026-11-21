@@ -4,8 +4,29 @@ import api, { FALLBACK_MACHINERY, FALLBACK_CATEGORIES } from "../utils/api";
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [machinery, setMachinery] = useState(FALLBACK_MACHINERY);
-  const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
+  // Ultra-fast instant render from sessionStorage cache, then revalidate in background (SWR pattern)
+  const [machinery, setMachinery] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem("new_machinery_cache");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) { }
+    return FALLBACK_MACHINERY;
+  });
+
+  const [categories, setCategories] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem("new_categories_cache");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) { }
+    return FALLBACK_CATEGORIES;
+  });
+
   const [loading, setLoading] = useState(false);
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [selectedMachineForQuote, setSelectedMachineForQuote] = useState(null);
@@ -28,18 +49,23 @@ export const AppProvider = ({ children }) => {
     setSelectedMachineForQuote(null);
   }, []);
 
-  const fetchCatalogData = useCallback(async () => {
+  const fetchCatalogData = useCallback(async (force = false) => {
     try {
-      setLoading(true);
       const [machRes, catRes] = await Promise.all([
-        api.get("/machinery"),
-        api.get("/categories"),
+        api.get("/machinery", { noCache: force }),
+        api.get("/categories", { noCache: force }),
       ]);
       if (machRes.data?.data?.length) {
         setMachinery(machRes.data.data);
+        try {
+          sessionStorage.setItem("new_machinery_cache", JSON.stringify(machRes.data.data));
+        } catch (e) { }
       }
       if (catRes.data?.data?.length) {
         setCategories(catRes.data.data);
+        try {
+          sessionStorage.setItem("new_categories_cache", JSON.stringify(catRes.data.data));
+        } catch (e) { }
       }
     } catch (err) {
       console.warn("Using local catalog data:", err.message);
@@ -57,6 +83,24 @@ export const AppProvider = ({ children }) => {
     return res.data;
   };
 
+  const submitContact = async (payload) => {
+    try {
+      const res = await api.post("/contacts", payload);
+      return res.data;
+    } catch (err) {
+      return submitEnquiry(payload);
+    }
+  };
+
+  const submitQuotation = async (payload) => {
+    try {
+      const res = await api.post("/quotations", payload);
+      return res.data;
+    } catch (err) {
+      return submitEnquiry(payload);
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -69,6 +113,8 @@ export const AppProvider = ({ children }) => {
         openQuoteModal,
         closeQuoteModal,
         submitEnquiry,
+        submitContact,
+        submitQuotation,
         toast,
         showToast,
         closeToast: () => setToast(null),

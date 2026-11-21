@@ -29,7 +29,7 @@ const REQUEST_TYPES = [
 ];
 
 const ContactPage = () => {
-  const { submitEnquiry, showToast } = useApp();
+  const { submitContact, submitEnquiry, showToast } = useApp();
 
   const [form, setForm] = useState({
     engineeringDiscipline: "New Turnkey Line Sizing",
@@ -54,7 +54,8 @@ const ContactPage = () => {
     }
     try {
       setSubmitting(true);
-      await submitEnquiry({
+      const submitFn = submitContact || submitEnquiry;
+      await submitFn({
         ...form,
         enquiryType: "Direct Engineering Inquiry",
       });

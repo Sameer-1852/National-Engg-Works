@@ -18,6 +18,21 @@ const ContactsPage = ({
 }) => {
   return (
     <div className="space-y-6">
+      {/* Header Info Banner */}
+      <div className="bg-white rounded-xl p-5 border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+        <div>
+          <div className="text-[10px] font-mono-tech text-[#d97706] uppercase font-bold tracking-wider">
+            CONTACT FORM INBOX
+          </div>
+          <h2 className="text-lg font-extrabold text-[#0f172a] mt-0.5">
+            Website Contact Us Inquiries ({filteredEnquiries.length})
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Exclusively showing messages and engineering inquiries submitted directly from the website Contact Page.
+          </p>
+        </div>
+      </div>
+
       {/* Search & Filter Controls */}
       <div className="bg-white rounded-xl p-5 border border-slate-200 space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -50,11 +65,10 @@ const ContactsPage = ({
                 key={st}
                 type="button"
                 onClick={() => setEnquiryStatusFilter(st)}
-                className={`px-3 py-2 rounded-lg text-xs font-mono-tech font-bold cursor-pointer ${
-                  enquiryStatusFilter === st
+                className={`px-3 py-2 rounded-lg text-xs font-mono-tech font-bold cursor-pointer ${enquiryStatusFilter === st
                     ? "bg-[#0d1829] text-white"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                }`}
+                  }`}
               >
                 {st}
               </button>
@@ -66,9 +80,14 @@ const ContactsPage = ({
       {/* Contact Us & Enquiries List */}
       {filteredEnquiries.length === 0 ? (
         <div className="bg-white rounded-xl p-12 text-center border border-slate-200">
-          <p className="text-sm text-slate-600 font-medium">
-            No Contact Us or inquiry records match your filter.
-          </p>
+          <div className="max-w-md mx-auto space-y-2">
+            <p className="text-base text-slate-800 font-bold">
+              No Contact Page Submissions Yet
+            </p>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Only submissions filled and submitted from the website Contact Page will appear here. When a user submits an inquiry on the Contact page, it will be displayed here in real time.
+            </p>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">

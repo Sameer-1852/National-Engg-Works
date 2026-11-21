@@ -33,7 +33,7 @@ const COMPANY_PHONE_RAW = "+919876543210";
 
 const MachineryDetailPage = () => {
   const { id } = useParams();
-  const { machinery, openQuoteModal, submitEnquiry, showToast } = useApp();
+  const { machinery, openQuoteModal, submitQuotation, submitEnquiry, showToast } = useApp();
 
   const [item, setItem] = useState(null);
   const [activeImage, setActiveImage] = useState(null);
@@ -63,14 +63,16 @@ const MachineryDetailPage = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
     const loadItem = async () => {
       try {
-        setLoading(true);
+        const normalizedId = decodeURIComponent(id || "").toLowerCase().trim();
         const foundLocal = machinery.find(
           (m) =>
-            m.modelCode?.toLowerCase() === id?.toLowerCase() ||
-            m._id === id
+            (m.modelCode && m.modelCode.toLowerCase().trim() === normalizedId) ||
+            (m.homeCode && m.homeCode.toLowerCase().trim() === normalizedId) ||
+            (m.slug && m.slug.toLowerCase().trim() === normalizedId) ||
+            (m._id && String(m._id).toLowerCase().trim() === normalizedId)
         );
         if (foundLocal) {
           setItem(foundLocal);
@@ -82,6 +84,8 @@ const MachineryDetailPage = () => {
           setLoading(false);
           return;
         }
+
+        setLoading(true);
         const res = await api.get(`/machinery/${id}`);
         if (res.data?.data) {
           const data = res.data.data;
@@ -144,7 +148,8 @@ const MachineryDetailPage = () => {
     }
     try {
       setSubmitting(true);
-      await submitEnquiry({
+      const submitFn = submitQuotation || submitEnquiry;
+      await submitFn({
         ...rfqForm,
         enquiryType: "Official Machinery RFQ",
       });
@@ -187,8 +192,8 @@ const MachineryDetailPage = () => {
                     type="button"
                     onClick={() => setActiveImage(thumb)}
                     className={`rounded-lg overflow-hidden border-2 h-24 cursor-pointer transition-all ${activeImage === thumb
-                        ? "border-[#d97706] shadow-sm"
-                        : "border-slate-200 hover:border-slate-400"
+                      ? "border-[#d97706] shadow-sm"
+                      : "border-slate-200 hover:border-slate-400"
                       }`}
                   >
                     <img
@@ -899,7 +904,7 @@ const MachineryDetailPage = () => {
 
       {/* Call Now Modal Pop-up (Responsive for Mobile & Desktop) */}
       {isCallModalOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200"
           onClick={() => setIsCallModalOpen(false)}
         >
@@ -963,11 +968,10 @@ const MachineryDetailPage = () => {
                 <button
                   type="button"
                   onClick={handleCopyNumber}
-                  className={`w-full h-12 rounded-xl font-mono-tech font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all shadow-sm cursor-pointer ${
-                    copiedPhone
-                      ? "bg-emerald-600 text-white"
-                      : "bg-[#0f172a] hover:bg-slate-800 text-white"
-                  }`}
+                  className={`w-full h-12 rounded-xl font-mono-tech font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all shadow-sm cursor-pointer ${copiedPhone
+                    ? "bg-emerald-600 text-white"
+                    : "bg-[#0f172a] hover:bg-slate-800 text-white"
+                    }`}
                 >
                   {copiedPhone ? (
                     <>

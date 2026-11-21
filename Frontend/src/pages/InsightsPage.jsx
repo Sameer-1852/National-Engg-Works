@@ -233,11 +233,10 @@ const InsightsPage = () => {
                 key={cat}
                 type="button"
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3.5 py-1.5 rounded text-[10.5px] font-mono-tech font-bold uppercase transition-colors cursor-pointer ${
-                  selectedCategory === cat
-                    ? "bg-[#0d1829] text-white"
-                    : "bg-white text-[#0f172a] border border-slate-200 hover:bg-slate-50"
-                }`}
+                className={`px-3.5 py-1.5 rounded text-[10.5px] font-mono-tech font-bold uppercase transition-colors cursor-pointer ${selectedCategory === cat
+                  ? "bg-[#0d1829] text-white"
+                  : "bg-white text-[#0f172a] border border-slate-200 hover:bg-slate-50"
+                  }`}
               >
                 {cat}
               </button>
@@ -400,11 +399,10 @@ const InsightsPage = () => {
                   key={p}
                   type="button"
                   onClick={() => setActivePage(p)}
-                  className={`w-9 h-9 rounded font-bold cursor-pointer ${
-                    activePage === p
-                      ? "bg-[#0d1829] text-white"
-                      : "bg-[#dce8f8] text-[#0f172a] hover:bg-[#c8dbf5]"
-                  }`}
+                  className={`w-9 h-9 rounded font-bold cursor-pointer ${activePage === p
+                    ? "bg-[#0d1829] text-white"
+                    : "bg-[#dce8f8] text-[#0f172a] hover:bg-[#c8dbf5]"
+                    }`}
                 >
                   0{p}
                 </button>
@@ -421,64 +419,6 @@ const InsightsPage = () => {
         </div>
       </section>
 
-      {/* 4. TECHNICAL DOCUMENTATION & BLUEPRINTS */}
-      <section className="bg-[#f8fafd] py-16">
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-8">
-          <div className="mb-10">
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-mono-tech text-[#d97706] uppercase font-bold tracking-wider">
-              <FolderOpen className="w-3.5 h-3.5" />
-              <span>ENGINEERING REPOSITORY &amp; CAD VAULT</span>
-            </div>
-            <h2 className="text-3xl font-extrabold text-[#0f172a] uppercase mt-1">
-              TECHNICAL DOCUMENTATION &amp; BLUEPRINTS
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-600 mt-1">
-              Downloadable operator manuals, 3D CAD layout schematics (STEP/DWG), and CE/UL compliance declarations for procurement managers and facility project teams.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-7">
-            {BLUEPRINTS.map((bp, i) => (
-              <div
-                key={i}
-                className="bg-white rounded-xl p-6 border border-slate-200 shadow-2xs flex flex-col justify-between space-y-5"
-              >
-                <div>
-                  <span className="inline-block bg-[#dce8f8] text-[#0f172a] text-[10px] font-mono-tech font-bold px-2.5 py-1 rounded">
-                    {bp.tag}
-                  </span>
-                  <h3 className="text-base font-extrabold text-[#0f172a] mt-3 leading-snug">
-                    {bp.title}
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed mt-2">
-                    {bp.desc}
-                  </p>
-
-                  <div className="flex flex-wrap gap-1.5 mt-4">
-                    {bp.formats.map((f) => (
-                      <span
-                        key={f}
-                        className="bg-[#eff5fc] text-[#334e68] text-[10px] font-mono-tech font-semibold px-2 py-0.5 rounded"
-                      >
-                        {f}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleDownloadBlueprint(bp)}
-                  className="w-full h-11 bg-[#0d1829] hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider rounded flex items-center justify-center gap-2 transition-colors cursor-pointer"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>{bp.btnLabel}</span>
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* 5. STAY AHEAD OF BAKERY PROCESSING INNOVATIONS (DARK NAVY BULLETIN) */}
       <section className="bg-[#0d1829] py-16 text-white border-t border-slate-800">

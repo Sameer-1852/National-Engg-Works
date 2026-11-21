@@ -25,6 +25,7 @@ const AdminUsersPage = ({
   onRoleChange,
   onDeleteUser,
   showToast,
+  onRefreshUsers,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
@@ -240,15 +241,27 @@ const AdminUsersPage = ({
         <div className="p-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
           <div>
             <div className="text-[10px] font-mono-tech text-[#d97706] uppercase font-bold">
-              USER CREDENTIALS DIRECTORY
+              USER CREDENTIALS DIRECTORY (MONGODB)
             </div>
             <h3 className="text-base font-extrabold text-[#0f172a]">
               All System Administrators ({filteredUsers.length})
             </h3>
           </div>
-          <span className="text-xs font-mono-tech text-slate-500">
-            Showing Name, Gmail &amp; Password
-          </span>
+          <div className="flex items-center gap-3">
+            {onRefreshUsers && (
+              <button
+                type="button"
+                onClick={onRefreshUsers}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono-tech text-[11px] font-bold transition-colors cursor-pointer"
+                title="Refresh users from MongoDB"
+              >
+                <span>↻ Refresh MongoDB</span>
+              </button>
+            )}
+            <span className="text-xs font-mono-tech text-slate-500">
+              Showing Name, Gmail &amp; Password
+            </span>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -265,7 +278,24 @@ const AdminUsersPage = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {filteredUsers.map((user, idx) => {
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-500 font-mono-tech">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <ShieldCheck className="w-8 h-8 text-slate-300" />
+                      <span className="text-sm font-semibold text-slate-700">
+                        No admin users found in MongoDB database
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        {searchQuery || roleFilter !== "All"
+                          ? "No users match the current filter or search criteria."
+                          : "Only users registered in MongoDB are displayed. Click 'Add New Admin' or 'Add New Author' above to add users."}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredUsers.map((user, idx) => {
                 const userIsAuthor = (user.role || "").toLowerCase() === "author";
                 const uid = user._id || user.id;
                 const isCurrent =
@@ -397,7 +427,7 @@ const AdminUsersPage = ({
                     </td>
                   </tr>
                 );
-              })}
+              }))}
             </tbody>
           </table>
         </div>

@@ -16,6 +16,7 @@ const Sidebar = ({
   productsCount,
   categoriesCount,
   enquiriesCount,
+  quotationsCount = 0,
   usersCount = 0,
   backendConnected,
   currentUser,
@@ -129,7 +130,7 @@ const Sidebar = ({
               <span>Request Quotation</span>
             </span>
             <span className="bg-amber-500/20 text-[#f59e0b] border border-amber-500/40 text-[10px] font-mono-tech px-2 py-0.5 rounded">
-              {enquiriesCount}
+              {quotationsCount}
             </span>
           </button>
 

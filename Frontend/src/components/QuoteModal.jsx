@@ -7,6 +7,7 @@ const QuoteModal = () => {
     isQuoteModalOpen,
     closeQuoteModal,
     selectedMachineForQuote,
+    submitQuotation,
     submitEnquiry,
     showToast,
   } = useApp();
@@ -27,7 +28,8 @@ const QuoteModal = () => {
 
     try {
       setSubmitting(true);
-      await submitEnquiry({
+      const submitFn = submitQuotation || submitEnquiry;
+      await submitFn({
         customerName: fullName,
         phone: mobileNumber,
         email: email || "",

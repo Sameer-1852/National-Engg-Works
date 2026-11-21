@@ -10,6 +10,8 @@ const authRoutes = require("./routes/auth.routes");
 const productRoutes = require("./routes/product.routes");
 const machineryRoutes = require("./routes/machinery.routes");
 const enquiryRoutes = require("./routes/enquiry.routes");
+const contactRoutes = require("./routes/contact.routes");
+const requestQuotationRoutes = require("./routes/requestQuotation.routes");
 const categoryRoutes = require("./routes/category.routes");
 const adminRoutes = require("./routes/admin.routes");
 
@@ -30,6 +32,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/machinery", machineryRoutes);
 app.use("/api/enquiries", enquiryRoutes);
+app.use("/api/contacts", contactRoutes);
+app.use("/api/quotations", requestQuotationRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/admin", adminRoutes);
 
