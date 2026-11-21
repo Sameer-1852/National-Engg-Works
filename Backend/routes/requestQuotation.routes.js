@@ -7,8 +7,8 @@ const {
   updateRequestQuotation,
   deleteRequestQuotation,
 } = require("../controllers/requestQuotation.controller");
-const { protect } = require("../middleware/auth.middleware");
-const { adminOnly } = require("../middleware/admin.middleware");
+const { protect } = require("../Middleware/auth.middleware");
+const { adminOnly } = require("../Middleware/admin.middleware");
 
 // Public submit from website Request Quotation forms & modals
 router.post("/", createRequestQuotation);

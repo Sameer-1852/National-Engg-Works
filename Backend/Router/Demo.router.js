@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const {DemoAPIs} = require("../Controller/Demo.controller.js");
 
+router.get("/Demo", (req, res) => {
+  res.json({ message: "Demo API" });
+});
 
-router.get("/Demo",DemoAPIs);
-
-module.exports = router
+module.exports = router;

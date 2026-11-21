@@ -1,4 +1,4 @@
-const Enquiry = require("../models/Enquiry.model");
+const Enquiry = require("../Models/Enquiry.model");
 
 const createEnquiry = async (req, res, next) => {
   try {

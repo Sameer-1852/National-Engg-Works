@@ -1,10 +1,13 @@
+const dotenv = require("dotenv");
+dotenv.config();
+
 const express = require("express");
 const cors = require("cors");
-const dotenv = require("dotenv");
 const path = require("path");
+const fs = require("fs");
 const connectDB = require("./config/db");
 const { seedDatabase } = require("./utils/seedData");
-const { errorHandler } = require("./middleware/error.middleware");
+const { errorHandler } = require("./Middleware/error.middleware");
 
 const authRoutes = require("./routes/auth.routes");
 const productRoutes = require("./routes/product.routes");
@@ -15,17 +18,25 @@ const requestQuotationRoutes = require("./routes/requestQuotation.routes");
 const categoryRoutes = require("./routes/category.routes");
 const adminRoutes = require("./routes/admin.routes");
 
-dotenv.config();
-
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  })
+);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// Static Uploads Folder
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Ensure Static Uploads Folder exists on deploy
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use("/uploads", express.static(uploadsDir));
 
 // API Routes
 app.use("/api/auth", authRoutes);
@@ -36,6 +47,15 @@ app.use("/api/contacts", contactRoutes);
 app.use("/api/quotations", requestQuotationRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/admin", adminRoutes);
+
+// Health check endpoint for cloud platforms (Render, Railway, AWS, etc.)
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
 
 app.get("/", (req, res) => {
   res.status(200).json({
@@ -49,6 +69,7 @@ app.get("/", (req, res) => {
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
+const HOST = "0.0.0.0";
 
 const startServer = async () => {
   try {
@@ -58,9 +79,17 @@ const startServer = async () => {
     console.error("Database initialization warning:", err.message);
   }
 
-  app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+  app.listen(PORT, HOST, () => {
+    console.log(`Server running at http://${HOST}:${PORT}`);
   });
 };
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception thrown:", error);
+});
 
 startServer();

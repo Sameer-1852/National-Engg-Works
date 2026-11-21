@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Machinery = require("../models/Machinery.model");
+const Machinery = require("../Models/Machinery.model");
 
 const getAllMachinery = async (req, res, next) => {
   try {

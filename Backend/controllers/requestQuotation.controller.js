@@ -1,4 +1,4 @@
-const RequestQuotation = require("../models/RequestQuotation.model");
+const RequestQuotation = require("../Models/RequestQuotation.model");
 
 const createRequestQuotation = async (req, res, next) => {
   try {

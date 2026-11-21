@@ -8,8 +8,8 @@ const {
   deleteAdminUser,
   getAdminAnalytics,
 } = require("../controllers/admin.controller");
-const { protect } = require("../middleware/auth.middleware");
-const { adminOnly } = require("../middleware/admin.middleware");
+const { protect } = require("../Middleware/auth.middleware");
+const { adminOnly } = require("../Middleware/admin.middleware");
 
 router.get("/dashboard", protect, adminOnly, getDashboardOverview);
 router.get("/users", protect, adminOnly, getAdminUsers);

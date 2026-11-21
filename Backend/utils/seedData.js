@@ -1,8 +1,8 @@
-const Category = require("../models/Category.model");
-const Machinery = require("../models/Machinery.model");
-const Product = require("../models/Product.model");
-const Enquiry = require("../models/Enquiry.model");
-const User = require("../models/User.model");
+const Category = require("../Models/Category.model");
+const Machinery = require("../Models/Machinery.model");
+const Product = require("../Models/Product.model");
+const Enquiry = require("../Models/Enquiry.model");
+const User = require("../Models/User.model");
 const bcrypt = require("bcryptjs");
 
 const INITIAL_CATEGORIES = [

@@ -7,8 +7,8 @@ const {
   updateEnquiry,
   deleteEnquiry,
 } = require("../controllers/enquiry.controller");
-const { protect } = require("../middleware/auth.middleware");
-const { adminOnly } = require("../middleware/admin.middleware");
+const { protect } = require("../Middleware/auth.middleware");
+const { adminOnly } = require("../Middleware/admin.middleware");
 
 router.post("/", createEnquiry);
 router.get("/", protect, adminOnly, getAllEnquiries);

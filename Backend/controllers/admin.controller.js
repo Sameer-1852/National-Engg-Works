@@ -1,8 +1,8 @@
-const Enquiry = require("../models/Enquiry.model");
-const Product = require("../models/Product.model");
-const Machinery = require("../models/Machinery.model");
-const Category = require("../models/Category.model");
-const User = require("../models/User.model");
+const Enquiry = require("../Models/Enquiry.model");
+const Product = require("../Models/Product.model");
+const Machinery = require("../Models/Machinery.model");
+const Category = require("../Models/Category.model");
+const User = require("../Models/User.model");
 const bcrypt = require("bcryptjs");
 
 const getDashboardOverview = async (req, res, next) => {
