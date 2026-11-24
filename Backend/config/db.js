@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const dns = require("dns");
 
 const connectDB = async () => {
   try {
@@ -14,7 +15,17 @@ const connectDB = async () => {
     if (!uri) {
       throw new Error("MONGODB_URL / MONGODB_URI is not defined in environment variables");
     }
-    const conn = await mongoose.connect(uri);
+
+    // Solve querySrv ECONNREFUSED for MongoDB Atlas clusters across local ISPs and networks
+    try {
+      dns.setServers(["8.8.8.8", "1.1.1.1", "8.8.4.4"]);
+    } catch (e) {
+      // ignore if environment does not allow setting custom DNS
+    }
+
+    const conn = await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 10000,
+    });
     console.log(`MongoDB Connected Successfully: ${conn.connection.host}`);
     return conn;
   } catch (err) {

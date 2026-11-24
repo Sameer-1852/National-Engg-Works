@@ -248,7 +248,7 @@ const AdminUsersPage = ({
             </h3>
           </div>
           <div className="flex items-center gap-3">
-            {onRefreshUsers && (
+            {/* {onRefreshUsers && (
               <button
                 type="button"
                 onClick={onRefreshUsers}
@@ -257,7 +257,7 @@ const AdminUsersPage = ({
               >
                 <span>↻ Refresh MongoDB</span>
               </button>
-            )}
+            )} */}
             <span className="text-xs font-mono-tech text-slate-500">
               Showing Name, Gmail &amp; Password
             </span>
@@ -296,138 +296,138 @@ const AdminUsersPage = ({
                 </tr>
               ) : (
                 filteredUsers.map((user, idx) => {
-                const userIsAuthor = (user.role || "").toLowerCase() === "author";
-                const uid = user._id || user.id;
-                const isCurrent =
-                  uid === (currentUser?._id || currentUser?.id) ||
-                  user.email === currentUser?.email;
-                const isPasswordRevealed = Boolean(showPasswords[uid]);
+                  const userIsAuthor = (user.role || "").toLowerCase() === "author";
+                  const uid = user._id || user.id;
+                  const isCurrent =
+                    uid === (currentUser?._id || currentUser?.id) ||
+                    user.email === currentUser?.email;
+                  const isPasswordRevealed = Boolean(showPasswords[uid]);
 
-                return (
-                  <tr key={uid || user.email} className="hover:bg-slate-50 transition-colors">
-                    {/* Index */}
-                    <td className="py-4 px-4 font-mono-tech font-bold text-slate-400">
-                      {String(idx + 1).padStart(2, "0")}
-                    </td>
+                  return (
+                    <tr key={uid || user.email} className="hover:bg-slate-50 transition-colors">
+                      {/* Index */}
+                      <td className="py-4 px-4 font-mono-tech font-bold text-slate-400">
+                        {String(idx + 1).padStart(2, "0")}
+                      </td>
 
-                    {/* Name */}
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-xs shrink-0 ${userIsAuthor
-                            ? "bg-purple-100 text-purple-800 border border-purple-300"
-                            : "bg-amber-100 text-amber-800 border border-amber-300"
-                            }`}
-                        >
-                          {(user.name || "A").charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="font-extrabold text-[#0f172a] text-sm flex items-center gap-1.5">
-                            <span>{user.name}</span>
-                            {isCurrent && (
-                              <span className="bg-emerald-100 text-emerald-800 text-[9.5px] font-mono-tech px-1.5 py-0.2 rounded font-bold">
-                                YOU
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-[11px] text-slate-500 font-mono-tech">
-                            {user.phone || "NEW Industrial Portal"}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Gmail / Email */}
-                    <td className="py-4 px-4">
-                      <a
-                        href={`mailto:${user.email}`}
-                        className="inline-flex items-center gap-1.5 font-mono-tech text-xs font-semibold text-blue-700 hover:text-[#d97706] bg-blue-50/70 px-2.5 py-1 rounded border border-blue-200/70"
-                      >
-                        <Mail className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                        <span>{user.email}</span>
-                      </a>
-                    </td>
-
-                    {/* Password (Visible or toggle reveal) */}
-                    <td className="py-4 px-4">
-                      <div className="inline-flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 font-mono-tech">
-                        <KeyRound className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                        <span className="font-bold text-slate-900 tracking-wider">
-                          {isPasswordRevealed ? user.password : "••••••••••••"}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => togglePasswordVisibility(uid)}
-                          className="ml-1 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer"
-                          title={isPasswordRevealed ? "Hide Password" : "Show Password"}
-                        >
-                          {isPasswordRevealed ? (
-                            <EyeOff className="w-3.5 h-3.5" />
-                          ) : (
-                            <Eye className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                      </div>
-                    </td>
-
-                    {/* Role & Role Change Dropdown */}
-                    <td className="py-4 px-4">
-                      {isAuthor ? (
-                        <div className="inline-flex items-center gap-1.5">
-                          <select
-                            value={user.role || "Admin"}
-                            disabled={isCurrent}
-                            onChange={(e) => handleRoleSelectChange(user, e.target.value)}
-                            className={`px-2.5 py-1 rounded text-xs font-mono-tech font-bold border focus:outline-none cursor-pointer ${userIsAuthor
-                              ? "bg-purple-50 text-purple-800 border-purple-300"
-                              : "bg-amber-50 text-amber-800 border-amber-300"
-                              } ${isCurrent ? "opacity-70 cursor-not-allowed" : ""}`}
+                      {/* Name */}
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-xs shrink-0 ${userIsAuthor
+                              ? "bg-purple-100 text-purple-800 border border-purple-300"
+                              : "bg-amber-100 text-amber-800 border border-amber-300"
+                              }`}
                           >
-                            <option value="Admin">Admin (Operations)</option>
-                            <option value="Author">Author (Super User)</option>
-                          </select>
+                            {(user.name || "A").charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="font-extrabold text-[#0f172a] text-sm flex items-center gap-1.5">
+                              <span>{user.name}</span>
+                              {isCurrent && (
+                                <span className="bg-emerald-100 text-emerald-800 text-[9.5px] font-mono-tech px-1.5 py-0.2 rounded font-bold">
+                                  YOU
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-slate-500 font-mono-tech">
+                              {user.phone || "NEW Industrial Portal"}
+                            </div>
+                          </div>
                         </div>
-                      ) : (
-                        <span
-                          className={`px-2.5 py-1 rounded text-xs font-mono-tech font-bold border ${userIsAuthor
-                            ? "bg-purple-100 text-purple-800 border-purple-300"
-                            : "bg-amber-100 text-amber-800 border-amber-300"
-                            }`}
-                        >
-                          {user.role}
-                        </span>
-                      )}
-                    </td>
+                      </td>
 
-                    {/* Date Added */}
-                    <td className="py-4 px-4 font-mono-tech text-[11px] text-slate-500">
-                      {user.createdAt
-                        ? new Date(user.createdAt).toLocaleDateString()
-                        : "Active"}
-                    </td>
-
-                    {/* Author Actions (Delete User) */}
-                    <td className="py-4 px-4 text-right">
-                      {isAuthor ? (
-                        <button
-                          type="button"
-                          disabled={isCurrent}
-                          onClick={() => handleDeleteClick(user)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                          title={isCurrent ? "Cannot delete your own active account" : "Delete Admin User"}
+                      {/* Gmail / Email */}
+                      <td className="py-4 px-4">
+                        <a
+                          href={`mailto:${user.email}`}
+                          className="inline-flex items-center gap-1.5 font-mono-tech text-xs font-semibold text-blue-700 hover:text-[#d97706] bg-blue-50/70 px-2.5 py-1 rounded border border-blue-200/70"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>Delete</span>
-                        </button>
-                      ) : (
-                        <span className="text-[11px] font-mono-tech text-slate-400 italic">
-                          Author Protected
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              }))}
+                          <Mail className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                          <span>{user.email}</span>
+                        </a>
+                      </td>
+
+                      {/* Password (Visible or toggle reveal) */}
+                      <td className="py-4 px-4">
+                        <div className="inline-flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 font-mono-tech">
+                          <KeyRound className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                          <span className="font-bold text-slate-900 tracking-wider">
+                            {isPasswordRevealed ? user.password : "••••••••••••"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => togglePasswordVisibility(uid)}
+                            className="ml-1 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer"
+                            title={isPasswordRevealed ? "Hide Password" : "Show Password"}
+                          >
+                            {isPasswordRevealed ? (
+                              <EyeOff className="w-3.5 h-3.5" />
+                            ) : (
+                              <Eye className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
+                      </td>
+
+                      {/* Role & Role Change Dropdown */}
+                      <td className="py-4 px-4">
+                        {isAuthor ? (
+                          <div className="inline-flex items-center gap-1.5">
+                            <select
+                              value={user.role || "Admin"}
+                              disabled={isCurrent}
+                              onChange={(e) => handleRoleSelectChange(user, e.target.value)}
+                              className={`px-2.5 py-1 rounded text-xs font-mono-tech font-bold border focus:outline-none cursor-pointer ${userIsAuthor
+                                ? "bg-purple-50 text-purple-800 border-purple-300"
+                                : "bg-amber-50 text-amber-800 border-amber-300"
+                                } ${isCurrent ? "opacity-70 cursor-not-allowed" : ""}`}
+                            >
+                              <option value="Admin">Admin (Operations)</option>
+                              <option value="Author">Author (Super User)</option>
+                            </select>
+                          </div>
+                        ) : (
+                          <span
+                            className={`px-2.5 py-1 rounded text-xs font-mono-tech font-bold border ${userIsAuthor
+                              ? "bg-purple-100 text-purple-800 border-purple-300"
+                              : "bg-amber-100 text-amber-800 border-amber-300"
+                              }`}
+                          >
+                            {user.role}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Date Added */}
+                      <td className="py-4 px-4 font-mono-tech text-[11px] text-slate-500">
+                        {user.createdAt
+                          ? new Date(user.createdAt).toLocaleDateString()
+                          : "Active"}
+                      </td>
+
+                      {/* Author Actions (Delete User) */}
+                      <td className="py-4 px-4 text-right">
+                        {isAuthor ? (
+                          <button
+                            type="button"
+                            disabled={isCurrent}
+                            onClick={() => handleDeleteClick(user)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title={isCurrent ? "Cannot delete your own active account" : "Delete Admin User"}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
+                          </button>
+                        ) : (
+                          <span className="text-[11px] font-mono-tech text-slate-400 italic">
+                            Author Protected
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                }))}
             </tbody>
           </table>
         </div>

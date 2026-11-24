@@ -36,7 +36,7 @@ const QuoteModal = () => {
         enquiryType: "Machinery Quotation Popup",
         machineryModel: selectedMachineForQuote
           ? `${selectedMachineForQuote.modelCode || ""} ${selectedMachineForQuote.machineryName || ""}`.trim()
-          : "General Industrial Machinery Quotation",
+          : "",
         message: selectedMachineForQuote
           ? `Popup quotation request for ${selectedMachineForQuote.machineryName} (${selectedMachineForQuote.modelCode})`
           : "Popup quotation request from header RFQ modal.",
