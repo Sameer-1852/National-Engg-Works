@@ -121,7 +121,7 @@ const LoginPage = ({ onLoginSuccess, allUsers }) => {
         <form onSubmit={handleSubmit} className="p-7 space-y-4">
           <div>
             <label className="block text-xs font-bold font-mono-tech uppercase text-slate-300 mb-1.5 tracking-wider">
-              Gmail / Email Address <span className="text-[#f59e0b]">*</span>
+              Email Address <span className="text-[#f59e0b]">*</span>
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
