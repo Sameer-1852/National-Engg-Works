@@ -5,6 +5,7 @@ import {
   FolderTree,
   MessageSquare,
   FileText,
+  Calendar,
   ShieldCheck,
   LogOut,
   User,
@@ -17,6 +18,7 @@ const Sidebar = ({
   categoriesCount,
   enquiriesCount,
   quotationsCount = 0,
+  bookSessionsCount = 0,
   usersCount = 0,
   backendConnected,
   currentUser,
@@ -131,6 +133,23 @@ const Sidebar = ({
             </span>
             <span className="bg-amber-500/20 text-[#f59e0b] border border-amber-500/40 text-[10px] font-mono-tech px-2 py-0.5 rounded">
               {quotationsCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("book-sessions")}
+            className={`w-full flex items-center justify-between px-3.5 py-3 rounded-lg text-xs font-bold transition-colors cursor-pointer ${activeTab === "book-sessions"
+              ? "bg-[#d97706] text-white shadow-sm"
+              : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+              }`}
+          >
+            <span className="flex items-center gap-2.5">
+              <Calendar className="w-4 h-4" />
+              <span>Book Sessions</span>
+            </span>
+            <span className="bg-amber-500/20 text-[#f59e0b] border border-amber-500/40 text-[10px] font-mono-tech px-2 py-0.5 rounded">
+              {bookSessionsCount}
             </span>
           </button>
 

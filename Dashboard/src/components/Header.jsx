@@ -24,6 +24,8 @@ const Header = ({
               "Contact Us & Engineering Inquiries Inspector"}
             {activeTab === "quotations" &&
               "Request Quotation — Client Details (Name, Email & Mobile)"}
+            {activeTab === "book-sessions" &&
+              "Book 1-on-1 Sessions — Live Client Bookings (Name, Mobile & Email)"}
             {activeTab === "users" &&
               "Admin Users & System Privileges (Name, Gmail & Password)"}
           </h1>

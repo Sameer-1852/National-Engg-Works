@@ -101,6 +101,21 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const bookOneOnOneSession = async (payload) => {
+    try {
+      const res = await api.post("/book-session", payload);
+      return res.data;
+    } catch (err) {
+      return submitEnquiry({
+        customerName: payload.name,
+        phone: payload.phone || payload.mobileNumber,
+        email: payload.email,
+        enquiryType: "1-on-1 Free Session Booking",
+        message: "Free 1-on-1 Consultation Session Booking Request",
+      });
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -115,6 +130,7 @@ export const AppProvider = ({ children }) => {
         submitEnquiry,
         submitContact,
         submitQuotation,
+        bookOneOnOneSession,
         toast,
         showToast,
         closeToast: () => setToast(null),

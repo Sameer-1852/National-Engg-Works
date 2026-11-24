@@ -15,6 +15,7 @@ import ProductsPage from "./pages/ProductsPage";
 import CategoriesPage from "./pages/CategoriesPage";
 import ContactsPage from "./pages/ContactsPage";
 import RequestQuotationPage from "./pages/RequestQuotationPage";
+import BookPage from "./pages/BookPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import LoginPage from "./pages/LoginPage";
 
@@ -86,6 +87,7 @@ function App() {
   const [enquiries, setEnquiries] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [quotations, setQuotations] = useState([]);
+  const [bookSessions, setBookSessions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [backendConnected, setBackendConnected] = useState(true);
   const [toast, setToast] = useState(null);
@@ -280,22 +282,35 @@ function App() {
     }
   }, []);
 
+  const fetchBookSessions = useCallback(async () => {
+    try {
+      const res = await api.get("/book-session");
+      if (res.data && Array.isArray(res.data.data)) {
+        setBookSessions(res.data.data);
+      }
+    } catch (err) {
+      console.warn("Could not fetch book sessions from MongoDB:", err.message);
+    }
+  }, []);
+
   const fetchAllData = useCallback(async () => {
     try {
       setLoading(true);
-      const [machRes, catRes, enqRes, usersRes, contactsRes, quotesRes] = await Promise.all([
+      const [machRes, catRes, enqRes, usersRes, contactsRes, quotesRes, sessionsRes] = await Promise.all([
         api.get("/machinery"),
         api.get("/categories"),
         api.get("/enquiries").catch(() => ({ data: { data: [] } })),
         api.get("/admin/users").catch(() => ({ data: { data: [] } })),
         api.get("/contacts").catch(() => ({ data: { data: [] } })),
         api.get("/quotations").catch(() => ({ data: { data: [] } })),
+        api.get("/book-session").catch(() => ({ data: { data: [] } })),
       ]);
       setProducts(machRes.data?.data || []);
       setCategories(catRes.data?.data || []);
       setEnquiries(enqRes.data?.data || []);
       setContacts(contactsRes.data?.data || []);
       setQuotations(quotesRes.data?.data || []);
+      setBookSessions(sessionsRes.data?.data || []);
 
       if (usersRes.data && Array.isArray(usersRes.data.data)) {
         setAllUsers(usersRes.data.data);
@@ -329,8 +344,10 @@ function App() {
       api.get("/quotations").then((res) => {
         if (res.data?.data) setQuotations(res.data.data);
       }).catch(() => { });
+    } else if (activeTab === "book-sessions") {
+      fetchBookSessions();
     }
-  }, [activeTab, fetchUsers]);
+  }, [activeTab, fetchUsers, fetchBookSessions]);
 
   // ============================================================================
   // UP TO 4 IMAGES UPLOAD FROM COMPUTER HANDLERS (NO DUMMY IMAGES)
@@ -1005,6 +1022,7 @@ function App() {
         categoriesCount={categories.length}
         enquiriesCount={allContacts.length}
         quotationsCount={allQuotations.length}
+        bookSessionsCount={bookSessions.length}
         usersCount={allUsers.length}
         backendConnected={backendConnected}
         currentUser={currentUser}
@@ -1116,6 +1134,15 @@ function App() {
               setSelectedEnquiry={setSelectedEnquiry}
               handleEnquiryStatusChange={handleQuotationStatusChange}
               handleDeleteEnquiry={handleDeleteQuotation}
+            />
+          )}
+
+          {activeTab === "book-sessions" && (
+            <BookPage
+              sessions={bookSessions}
+              onRefresh={fetchBookSessions}
+              showToast={showToast}
+              currentUser={currentUser}
             />
           )}
 

@@ -20,6 +20,9 @@ import {
   ClipboardList,
   Send,
   HelpCircle,
+  X,
+  User,
+  Mail,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 
@@ -91,8 +94,46 @@ const STARTUP_PROFILES = [
 ];
 
 const StartBusinessPage = () => {
-  const { submitEnquiry, showToast } = useApp();
+  const { submitEnquiry, bookOneOnOneSession, showToast } = useApp();
   const formRef = useRef(null);
+
+  // Book 1-on-1 Free Session Form State
+  const [sessionForm, setSessionForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+  });
+  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
+  const [isSubmittingSession, setIsSubmittingSession] = useState(false);
+  const [sessionSuccess, setSessionSuccess] = useState(false);
+
+  const handleBookSessionSubmit = async (e) => {
+    e.preventDefault();
+    if (!sessionForm.name.trim() || !sessionForm.phone.trim() || !sessionForm.email.trim()) {
+      showToast("Please provide your Name, Mobile Number, and Email.", "error");
+      return;
+    }
+
+    try {
+      setIsSubmittingSession(true);
+      await bookOneOnOneSession({
+        name: sessionForm.name.trim(),
+        phone: sessionForm.phone.trim(),
+        email: sessionForm.email.trim(),
+      });
+      setSessionSuccess(true);
+      showToast("Your 1-on-1 Free Session has been booked and saved in MongoDB!");
+      setTimeout(() => {
+        setSessionForm({ name: "", phone: "", email: "" });
+        setSessionSuccess(false);
+        setIsSessionModalOpen(false);
+      }, 3000);
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to book session. Please try again.", "error");
+    } finally {
+      setIsSubmittingSession(false);
+    }
+  };
 
   // Interactive Quick Bakery Utility Sizing Calculator State
   const [calcProduct, setCalcProduct] = useState("Artisan Sourdough & Rustic Bread");
@@ -243,7 +284,7 @@ const StartBusinessPage = () => {
               <div className="pt-2">
                 <button
                   type="button"
-                  onClick={() => formRef.current?.scrollIntoView({ behavior: "smooth" })}
+                  onClick={() => setIsSessionModalOpen(true)}
                   className="inline-flex items-center gap-2 bg-[#d97706] hover:bg-[#b45309] text-white font-bold text-xs uppercase tracking-wider px-6 py-4 rounded shadow-sm transition-colors cursor-pointer"
                 >
                   <Calendar className="w-4 h-4" />
@@ -281,6 +322,17 @@ const StartBusinessPage = () => {
                     <span>ASME &amp; EHEDG Certified Advisory Staff</span>
                   </div>
                 </div>
+
+                {/* <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsSessionModalOpen(true)}
+                    className="w-full bg-[#d97706] hover:bg-[#b45309] text-white font-bold text-xs uppercase tracking-wider py-3.5 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    <span>BOOK 1–ON–1 SESSION FREE</span>
+                  </button>
+                </div> */}
               </div>
             </div>
           </div>
@@ -1066,6 +1118,127 @@ const StartBusinessPage = () => {
           </div>
         </div>
       </section>
+
+      {/* 1-on-1 Free Session Booking Modal */}
+      {isSessionModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          onClick={() => setIsSessionModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-200 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setIsSessionModalOpen(false)}
+              className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-2 mb-2">
+              <span className="p-2 bg-[#fef3c7] text-[#d97706] rounded-lg">
+                <Calendar className="w-5 h-5" />
+              </span>
+              <div>
+                <h3 className="text-lg font-extrabold text-[#0f172a]">
+                  Book 1–on–1 Session Free
+                </h3>
+                <span className="text-[11px] font-mono-tech text-emerald-600 font-semibold">
+                  // ZERO OBLIGATION // 100% FREE CONSULTATION
+                </span>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 mb-5 leading-relaxed">
+              Speak directly with our senior bakery engineering team. We'll evaluate your recipes, production volume, and machinery requirements.
+            </p>
+
+            {sessionSuccess ? (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-center space-y-2">
+                <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
+                <div className="font-extrabold text-sm">Session Booked Successfully!</div>
+                <p className="text-xs text-emerald-700">
+                  Your booking details have been stored securely in MongoDB. Our senior systems engineer will contact you shortly.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleBookSessionSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Name <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      required
+                      placeholder="Enter your full name"
+                      value={sessionForm.name}
+                      onChange={(e) =>
+                        setSessionForm({ ...sessionForm, name: e.target.value })
+                      }
+                      className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#d97706] focus:ring-1 focus:ring-[#d97706]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Mobile Number <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="tel"
+                      required
+                      placeholder="e.g. +91 9876543210"
+                      value={sessionForm.phone}
+                      onChange={(e) =>
+                        setSessionForm({ ...sessionForm, phone: e.target.value })
+                      }
+                      className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#d97706] focus:ring-1 focus:ring-[#d97706]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      required
+                      placeholder="e.g. john@example.com"
+                      value={sessionForm.email}
+                      onChange={(e) =>
+                        setSessionForm({ ...sessionForm, email: e.target.value })
+                      }
+                      className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#d97706] focus:ring-1 focus:ring-[#d97706]"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isSubmittingSession}
+                    className="w-full bg-[#d97706] hover:bg-[#b45309] text-white font-bold text-xs uppercase tracking-wider py-3 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    <span>
+                      {isSubmittingSession ? "Booking Session..." : "Confirm 1-on-1 Free Session"}
+                    </span>
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

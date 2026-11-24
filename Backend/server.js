@@ -18,6 +18,7 @@ const contactRoutes = require("./routes/contact.routes");
 const requestQuotationRoutes = require("./routes/requestQuotation.routes");
 const categoryRoutes = require("./routes/category.routes");
 const adminRoutes = require("./routes/admin.routes");
+const bookSessionRoutes = require("./routes/bookSession.routes");
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use("/api/contacts", contactRoutes);
 app.use("/api/quotations", requestQuotationRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/book-session", bookSessionRoutes);
 
 // Health check endpoint for cloud platforms (Render, Railway, AWS, etc.)
 app.get("/health", (req, res) => {
