@@ -374,8 +374,8 @@ const BookPage = ({
               type="button"
               onClick={() => setStatusFilter(st.value)}
               className={`px-3 py-1.5 rounded-lg text-xs font-mono-tech font-bold transition-all cursor-pointer ${statusFilter === st.value
-                  ? "bg-[#0d1829] text-white shadow-xs"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                ? "bg-[#0d1829] text-white shadow-xs"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
             >
               {st.label}
