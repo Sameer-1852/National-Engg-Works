@@ -9,4 +9,19 @@ const api = axios.create({
   },
 });
 
+api.interceptors.request.use((config) => {
+  try {
+    const stored = localStorage.getItem("apex_dashboard_user");
+    if (stored) {
+      const user = JSON.parse(stored);
+      if (user?.token) {
+        config.headers.Authorization = `Bearer ${user.token}`;
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+  return config;
+});
+
 export default api;

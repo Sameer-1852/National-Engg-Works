@@ -288,8 +288,8 @@ const HomePage = () => {
                 type="button"
                 onClick={() => setMobileUnitsTab("ALL")}
                 className={`px-2 py-0.5 text-[9.5px] font-mono-tech font-bold rounded transition-colors ${mobileUnitsTab === "ALL"
-                    ? "bg-[#0d1829] text-white"
-                    : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#0d1829] text-white"
+                  : "text-slate-600 hover:text-slate-900"
                   }`}
               >
                 ALL UNITS
@@ -298,8 +298,8 @@ const HomePage = () => {
                 type="button"
                 onClick={() => setMobileUnitsTab("MIXING")}
                 className={`px-2 py-0.5 text-[9.5px] font-mono-tech font-bold rounded transition-colors ${mobileUnitsTab === "MIXING"
-                    ? "bg-[#0d1829] text-white"
-                    : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#0d1829] text-white"
+                  : "text-slate-600 hover:text-slate-900"
                   }`}
               >
                 MIXING
@@ -596,8 +596,8 @@ const HomePage = () => {
                     type="button"
                     onClick={() => setMobileCapacity(cap)}
                     className={`h-9 text-[11px] font-mono-tech font-bold rounded border transition-colors cursor-pointer ${mobileCapacity === cap
-                        ? "bg-[#dbeafe] text-[#1e40af] border-blue-400"
-                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                      ? "bg-[#dbeafe] text-[#1e40af] border-blue-400"
+                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
                       }`}
                   >
                     {cap}
@@ -716,10 +716,10 @@ const HomePage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
               {/* Left Content */}
               <div className="lg:col-span-6 space-y-6">
-                <div className="inline-flex items-center gap-2 bg-slate-800/80 border border-slate-700/80 px-3.5 py-1.5 rounded text-[11px] font-mono-tech text-[#f59e0b] font-semibold tracking-wider uppercase">
+                {/* <div className="inline-flex items-center gap-2 bg-slate-800/80 border border-slate-700/80 px-3.5 py-1.5 rounded text-[11px] font-mono-tech text-[#f59e0b] font-semibold tracking-wider uppercase">
                   <span className="w-2 h-2 rounded-full bg-[#f59e0b] animate-pulse" />
                   <span>NEW – NATIONAL ENGINEERING WORKS • B2B INDUSTRIAL SYSTEMS</span>
-                </div>
+                </div> */}
 
                 <h1 className="text-4xl sm:text-5xl lg:text-[52px] font-extrabold text-white leading-[1.12] tracking-tight">
                   Powering the Future

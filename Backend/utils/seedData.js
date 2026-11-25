@@ -845,63 +845,6 @@ const seedDatabase = async () => {
       await Enquiry.insertMany(INITIAL_ENQUIRIES);
       console.log("Seeded Enquiries collection");
     }
-
-    // Ensure default Author and Admin exist in MongoDB
-    const authorUser = await User.findOne({ email: "author@new-engineering.com" });
-    if (!authorUser) {
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash("Author@123", salt);
-      await User.create({
-        name: "Master Author (Founder)",
-        email: "author@new-engineering.com",
-        password: hashedPassword,
-        plainPassword: "Author@123",
-        phone: "+91 98201 44820",
-        companyName: "NEW – National Engineering Works",
-        role: "Author",
-      });
-      console.log("Seeded default Author User in MongoDB");
-    } else {
-      authorUser.role = "Author";
-      if (!authorUser.plainPassword) authorUser.plainPassword = "Author@123";
-      await authorUser.save();
-    }
-
-    const adminUser = await User.findOne({ email: "admin@new-engineering.com" });
-    if (!adminUser) {
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash("Admin@123", salt);
-      await User.create({
-        name: "Chief Systems Administrator",
-        email: "admin@new-engineering.com",
-        password: hashedPassword,
-        plainPassword: "Admin@123",
-        phone: "+1 (800) 492-7325",
-        companyName: "NEW – National Engineering Works",
-        role: "Admin",
-      });
-      console.log("Seeded default Admin User in MongoDB");
-    } else {
-      adminUser.role = "Admin";
-      if (!adminUser.plainPassword) adminUser.plainPassword = "Admin@123";
-      await adminUser.save();
-    }
-
-    const plantAdmin = await User.findOne({ email: "plant.admin@gmail.com" });
-    if (!plantAdmin) {
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash("Plant@2026", salt);
-      await User.create({
-        name: "Plant Machinery Admin",
-        email: "plant.admin@gmail.com",
-        password: hashedPassword,
-        plainPassword: "Plant@2026",
-        phone: "+91 99200 88310",
-        companyName: "NEW – National Engineering Works",
-        role: "Admin",
-      });
-      console.log("Seeded Plant Admin in MongoDB");
-    }
   } catch (err) {
     console.error("Seed error:", err.message);
   }

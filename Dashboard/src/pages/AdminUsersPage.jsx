@@ -50,8 +50,10 @@ const AdminUsersPage = ({
     }));
   };
 
+  // Show strictly only live MongoDB data directly from allUsers
   const filteredUsers = useMemo(() => {
-    return allUsers.filter((u) => {
+    const list = Array.isArray(allUsers) ? allUsers : [];
+    return list.filter((u) => {
       if (roleFilter !== "All" && (u.role || "").toLowerCase() !== roleFilter.toLowerCase()) {
         return false;
       }
@@ -69,7 +71,7 @@ const AdminUsersPage = ({
 
   const handleOpenAddModal = (defaultRole = "Admin") => {
     if (!isAuthor) {
-      showToast("Access Denied: Only an Author can add new users.", "error");
+      showToast("Access Denied: Admin cannot create New Admin and Author. Author privileges required.", "error");
       return;
     }
     setNewUserForm({
@@ -84,8 +86,9 @@ const AdminUsersPage = ({
 
   const handleCreateUserSubmit = async (e) => {
     e.preventDefault();
+
     if (!isAuthor) {
-      showToast("Access Denied: Only an Author can add new users.", "error");
+      showToast("Access Denied: Admin cannot create New Admin and Author. Author privileges required.", "error");
       return;
     }
 
@@ -113,18 +116,21 @@ const AdminUsersPage = ({
 
     if (success) {
       setIsAddModalOpen(false);
+      if (onRefreshUsers) {
+        onRefreshUsers();
+      }
     }
   };
 
   const handleRoleSelectChange = (user, newRole) => {
     if (!isAuthor) {
-      showToast("Access Denied: Only Author can change user roles.", "error");
+      showToast("Access Denied: Admin cannot change any role. Author privileges required.", "error");
       return;
     }
     const currentId = currentUser?._id || currentUser?.id;
     const userId = user._id || user.id;
     if (userId === currentId || user.email === currentUser?.email) {
-      showToast("You cannot change your own active Author role.", "error");
+      showToast("You cannot change your own active role.", "error");
       return;
     }
     onRoleChange(userId, newRole);
@@ -132,7 +138,7 @@ const AdminUsersPage = ({
 
   const handleDeleteClick = (user) => {
     if (!isAuthor) {
-      showToast("Access Denied: Only Author can delete admin users.", "error");
+      showToast("Permission Denied: Admin users cannot delete users. Author privileges required.", "error");
       return;
     }
     const currentId = currentUser?._id || currentUser?.id;
@@ -168,13 +174,18 @@ const AdminUsersPage = ({
             </p>
           </div>
 
-          {/* Action Buttons for Author */}
+          {/* Action Buttons: Author can create New Admin and Author */}
           <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
               onClick={() => handleOpenAddModal("Admin")}
               disabled={!isAuthor}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#d97706] hover:bg-[#b45309] text-white text-xs font-bold uppercase transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold uppercase transition-colors shadow-sm ${
+                isAuthor
+                  ? "bg-[#d97706] hover:bg-[#b45309] text-white cursor-pointer"
+                  : "bg-slate-700/60 text-slate-400 cursor-not-allowed opacity-50"
+              }`}
+              title={isAuthor ? "Add New Admin (Author Permission)" : "Permission Denied: Admin cannot create New Admin"}
             >
               <UserPlus className="w-4 h-4" />
               <span>Add New Admin</span>
@@ -184,14 +195,18 @@ const AdminUsersPage = ({
               type="button"
               onClick={() => handleOpenAddModal("Author")}
               disabled={!isAuthor}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold uppercase transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold uppercase transition-colors shadow-sm ${
+                isAuthor
+                  ? "bg-purple-700 hover:bg-purple-800 text-white cursor-pointer"
+                  : "bg-slate-700/60 text-slate-400 cursor-not-allowed opacity-50"
+              }`}
+              title={isAuthor ? "Add New Author (Author Permission)" : "Permission Denied: Admin cannot create New Author"}
             >
               <Shield className="w-4 h-4" />
               <span>Add New Author</span>
             </button>
           </div>
         </div>
-
 
         {/* Notice for current role */}
         <div className="mt-4 flex items-center gap-2 text-xs bg-slate-800/80 px-3.5 py-2 rounded-lg">
@@ -201,7 +216,9 @@ const AdminUsersPage = ({
             <span className={isAuthor ? "text-purple-300 font-bold" : "text-amber-400 font-bold"}>
               {currentUser?.role || "Admin"}
             </span>
-            ). {isAuthor ? "Full Author permissions are ACTIVE." : "Author-only actions are locked for Admin."}
+            ). {isAuthor
+              ? "Author Permissions ACTIVE: You can create New Admin/Author and delete any Admin user."
+              : "Admin Permissions ACTIVE: Cannot delete Author, cannot change any role, and cannot create New Admin/Author."}
           </span>
         </div>
       </div>
@@ -406,23 +423,26 @@ const AdminUsersPage = ({
                           : "Active"}
                       </td>
 
-                      {/* Author Actions (Delete User) */}
+                      {/* Actions (Delete User) - Strictly removed for Admin User; only Author can delete Admin users */}
                       <td className="py-4 px-4 text-right">
-                        {isAuthor ? (
+                        {!isAuthor ? (
+                          <span className="text-[11px] font-mono-tech text-slate-400 italic px-2 py-1 rounded bg-slate-100 border border-slate-200">
+                            Author Only (Permission Denied)
+                          </span>
+                        ) : isCurrent ? (
+                          <span className="text-[11px] font-mono-tech text-slate-400 italic">
+                            Active Account
+                          </span>
+                        ) : (
                           <button
                             type="button"
-                            disabled={isCurrent}
                             onClick={() => handleDeleteClick(user)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                            title={isCurrent ? "Cannot delete your own active account" : "Delete Admin User"}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold transition-colors cursor-pointer"
+                            title="Author permission: Delete Admin User"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
-                            <span>Delete</span>
+                            <span>Delete Admin</span>
                           </button>
-                        ) : (
-                          <span className="text-[11px] font-mono-tech text-slate-400 italic">
-                            Author Protected
-                          </span>
                         )}
                       </td>
                     </tr>
