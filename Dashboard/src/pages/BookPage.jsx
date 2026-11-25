@@ -258,7 +258,7 @@ const BookPage = ({
             <span>START BUSINESS // 1-ON-1 SESSIONS INBOX</span>
           </div>
           <h2 className="text-lg sm:text-xl font-extrabold text-[#0f172a] mt-0.5">
-            Book 1–on–1 Session Requests ({filteredSessions.length})
+            Book 1–on–1 Meet Requests ({filteredSessions.length})
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
             Manage live consultation bookings submitted from the website Start Business Page (Name, Mobile Number, Email).
@@ -373,11 +373,10 @@ const BookPage = ({
               key={st.value}
               type="button"
               onClick={() => setStatusFilter(st.value)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono-tech font-bold transition-all cursor-pointer ${
-                statusFilter === st.value
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono-tech font-bold transition-all cursor-pointer ${statusFilter === st.value
                   ? "bg-[#0d1829] text-white shadow-xs"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
+                }`}
             >
               {st.label}
             </button>
