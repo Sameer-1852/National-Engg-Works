@@ -320,7 +320,7 @@ function App() {
       console.error("Backend sync error:", err.message);
       setBackendConnected(false);
       showToast(
-        "Could not reach Backend API on http://localhost:3000. Please ensure Backend server is running.",
+        "Could not reach Backend API. Please check your network connection or verify the server status.",
         "error"
       );
     } finally {
