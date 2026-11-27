@@ -46,9 +46,9 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full">
-        {/* DESKTOP Top Dark Industrial Utility Bar */}
-        <div className="hidden md:block bg-[#0d1829] text-slate-300 text-[11px] font-mono-tech py-2 px-4 sm:px-8 border-b border-slate-800">
+      <header className="sticky top-0 z-40 w-full transition-all duration-300">
+        {/* DESKTOP Top Dark Industrial Utility Bar with Frosted Glass */}
+        <div className="hidden md:block bg-[#0d1829]/90 backdrop-blur-md text-slate-300 text-[11px] font-mono-tech py-2 px-4 sm:px-8 border-b border-slate-700/50 shadow-xs">
           <div className="max-w-[1240px] mx-auto flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-3">
               <span className="inline-flex items-center gap-1.5 text-slate-200 tracking-wide">
@@ -83,8 +83,8 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Main Navigation Bar (Desktop + Mobile Header Matching Screenshot) */}
-        <div className="bg-[#f8fafd]/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+        {/* Main Navigation Bar with Premium Glass Effect */}
+        <div className="bg-white/75 backdrop-blur-xl backdrop-saturate-150 border-b border-slate-200/60 shadow-[0_4px_25px_rgba(0,0,0,0.03)] supports-[backdrop-filter]:bg-white/70">
           <div className="max-w-[1240px] mx-auto px-4 sm:px-8 h-14 md:h-18 flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
@@ -95,14 +95,14 @@ const Navbar = () => {
               />
             </Link>
 
-            {/* Desktop Navigation Links */}
+            {/* Desktop Navigation Links with Frosted Pills */}
             <nav className="hidden lg:flex items-center gap-6 text-[13.5px] font-medium text-slate-700">
               <Link
                 to="/"
-                className={`px-3 py-1.5 rounded transition-colors ${
+                className={`px-3 py-1.5 rounded-lg transition-all ${
                   isActive("/") && location.pathname === "/"
-                    ? "bg-[#dbeafe] text-[#0f172a] font-bold"
-                    : "hover:text-[#0f172a] hover:bg-slate-100"
+                    ? "bg-blue-50/80 text-[#0f172a] font-bold border border-blue-200/60 shadow-2xs backdrop-blur-xs"
+                    : "hover:text-[#0f172a] hover:bg-slate-100/70"
                 }`}
               >
                 Home
@@ -110,10 +110,10 @@ const Navbar = () => {
 
               <Link
                 to="/products"
-                className={`px-3 py-1.5 rounded transition-colors ${
+                className={`px-3 py-1.5 rounded-lg transition-all ${
                   isActive("/products")
-                    ? "bg-[#dbeafe] text-[#0f172a] font-bold"
-                    : "hover:text-[#0f172a] hover:bg-slate-100"
+                    ? "bg-blue-50/80 text-[#0f172a] font-bold border border-blue-200/60 shadow-2xs backdrop-blur-xs"
+                    : "hover:text-[#0f172a] hover:bg-slate-100/70"
                 }`}
               >
                 Products
@@ -127,10 +127,10 @@ const Navbar = () => {
               >
                 <button
                   type="button"
-                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded transition-colors cursor-pointer ${
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                     isActive("/solutions")
-                      ? "bg-[#dbeafe] text-[#0f172a] font-bold"
-                      : "hover:text-[#0f172a] hover:bg-slate-100"
+                      ? "bg-blue-50/80 text-[#0f172a] font-bold border border-blue-200/60 shadow-2xs backdrop-blur-xs"
+                      : "hover:text-[#0f172a] hover:bg-slate-100/70"
                   }`}
                 >
                   <span>Solutions</span>
@@ -139,11 +139,11 @@ const Navbar = () => {
 
                 {solutionsDropdown && (
                   <div className="absolute left-0 top-full pt-1.5 w-68 z-50">
-                    <div className="bg-white rounded-lg shadow-xl border border-slate-200 py-2 overflow-hidden">
+                    <div className="bg-white/90 backdrop-blur-2xl rounded-xl shadow-[0_12px_36px_rgba(0,0,0,0.1)] border border-white/80 py-2 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                       <Link
                         to="/solutions/start-your-business"
                         onClick={() => setSolutionsDropdown(false)}
-                        className="block px-4 py-2.5 hover:bg-slate-50 transition-colors border-b border-slate-100"
+                        className="block px-4 py-2.5 hover:bg-blue-50/60 transition-colors border-b border-slate-100/80"
                       >
                         <div className="text-sm font-bold text-slate-900">
                           Start Your Bakery Business
@@ -152,7 +152,7 @@ const Navbar = () => {
                       <Link
                         to="/solutions/find-machinery"
                         onClick={() => setSolutionsDropdown(false)}
-                        className="block px-4 py-2.5 hover:bg-slate-50 transition-colors border-b border-slate-100"
+                        className="block px-4 py-2.5 hover:bg-blue-50/60 transition-colors border-b border-slate-100/80"
                       >
                         <div className="text-sm font-bold text-slate-900">
                           Find Your Exact Machinery
@@ -161,7 +161,7 @@ const Navbar = () => {
                       <Link
                         to="/solutions/upgrade-scale"
                         onClick={() => setSolutionsDropdown(false)}
-                        className="block px-4 py-2.5 hover:bg-slate-50 transition-colors"
+                        className="block px-4 py-2.5 hover:bg-blue-50/60 transition-colors"
                       >
                         <div className="text-sm font-bold text-slate-900">
                           Upgrade &amp; Scale Production
@@ -174,10 +174,10 @@ const Navbar = () => {
 
               <Link
                 to="/insights"
-                className={`px-3 py-1.5 rounded transition-colors ${
+                className={`px-3 py-1.5 rounded-lg transition-all ${
                   isActive("/insights")
-                    ? "bg-[#dbeafe] text-[#0f172a] font-bold"
-                    : "hover:text-[#0f172a] hover:bg-slate-100"
+                    ? "bg-blue-50/80 text-[#0f172a] font-bold border border-blue-200/60 shadow-2xs backdrop-blur-xs"
+                    : "hover:text-[#0f172a] hover:bg-slate-100/70"
                 }`}
               >
                 Insights &amp; Resources
@@ -185,10 +185,10 @@ const Navbar = () => {
 
               <Link
                 to="/about"
-                className={`px-3 py-1.5 rounded transition-colors ${
+                className={`px-3 py-1.5 rounded-lg transition-all ${
                   isActive("/about")
-                    ? "bg-[#dbeafe] text-[#0f172a] font-bold"
-                    : "hover:text-[#0f172a] hover:bg-slate-100"
+                    ? "bg-blue-50/80 text-[#0f172a] font-bold border border-blue-200/60 shadow-2xs backdrop-blur-xs"
+                    : "hover:text-[#0f172a] hover:bg-slate-100/70"
                 }`}
               >
                 About
@@ -196,34 +196,34 @@ const Navbar = () => {
 
               <Link
                 to="/contact"
-                className={`px-3 py-1.5 rounded transition-colors ${
+                className={`px-3 py-1.5 rounded-lg transition-all ${
                   isActive("/contact")
-                    ? "bg-[#dbeafe] text-[#0f172a] font-bold"
-                    : "hover:text-[#0f172a] hover:bg-slate-100"
+                    ? "bg-blue-50/80 text-[#0f172a] font-bold border border-blue-200/60 shadow-2xs backdrop-blur-xs"
+                    : "hover:text-[#0f172a] hover:bg-slate-100/70"
                 }`}
               >
                 Contact Us
               </Link>
             </nav>
 
-            {/* Desktop Right CTA Button */}
+            {/* Desktop Right CTA Button with Glass Reflection */}
             <div className="hidden sm:flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => openQuoteModal()}
-                className="inline-flex items-center gap-2 bg-[#d97706] hover:bg-[#b45309] text-white font-semibold text-xs tracking-wider uppercase px-5 py-3 rounded shadow-xs transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 bg-[#d97706] hover:bg-[#b45309] text-white font-semibold text-xs tracking-wider uppercase px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-98"
               >
                 <FileText className="w-3.5 h-3.5" />
                 <span>REQUEST A QUOTE (RFQ)</span>
               </button>
             </div>
 
-            {/* MOBILE HEADER ICONS (MATCHING SCREENSHOT) */}
+            {/* MOBILE HEADER ICONS */}
             <div className="flex md:hidden items-center gap-2">
               <button
                 type="button"
                 onClick={() => setIsContactModalOpen(true)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center text-slate-700 transition-all cursor-pointer"
+                className="w-8 h-8 rounded-full bg-slate-100/80 backdrop-blur-xs hover:bg-slate-200 active:scale-95 flex items-center justify-center text-slate-700 transition-all cursor-pointer border border-white/60"
                 title="Call Desk"
                 aria-label="Open Contact Pop-up"
               >
@@ -233,7 +233,7 @@ const Navbar = () => {
               <button
                 type="button"
                 onClick={() => openQuoteModal()}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700 transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-slate-100/80 backdrop-blur-xs hover:bg-slate-200 flex items-center justify-center text-slate-700 transition-colors cursor-pointer border border-white/60"
                 title="Instant RFQ"
               >
                 <MessageSquare className="w-4 h-4 text-slate-600" />
@@ -250,7 +250,7 @@ const Navbar = () => {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-1 rounded text-slate-700 hover:bg-slate-100 ml-1"
+                className="p-1 rounded text-slate-700 hover:bg-slate-100/80 ml-1 cursor-pointer"
                 aria-label="Toggle Menu"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -258,9 +258,9 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile Responsive Hamburger Drawer (when clicked) */}
+          {/* Mobile Responsive Hamburger Drawer with Glass Effect */}
           {mobileMenuOpen && (
-            <div className="lg:hidden bg-white border-t border-slate-200 px-4 pt-3 pb-5 space-y-2">
+            <div className="lg:hidden bg-white/90 backdrop-blur-2xl border-t border-slate-200/60 px-4 pt-3 pb-5 space-y-2 shadow-lg animate-in slide-in-from-top-2 duration-200">
               <Link
                 to="/"
                 onClick={() => setMobileMenuOpen(false)}
@@ -332,8 +332,8 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* MOBILE SUB-BANNER STRIP (MATCHING SCREENSHOT) */}
-        <div className="md:hidden bg-[#0d1829] text-white px-4 py-2 flex items-center justify-between text-[11px] font-mono-tech border-b border-slate-800">
+        {/* MOBILE SUB-BANNER STRIP WITH GLASS ACCENT */}
+        <div className="md:hidden bg-[#0d1829]/90 backdrop-blur-md text-white px-4 py-2 flex items-center justify-between text-[11px] font-mono-tech border-b border-slate-700/50 shadow-xs">
           <div className="flex items-center gap-1.5 text-amber-400 font-bold tracking-wide">
             <AlertTriangle className="w-3.5 h-3.5 fill-[#f59e0b] text-[#0d1829]" />
             <span>24/7 SERVICE ACTIVE</span>
@@ -349,8 +349,8 @@ const Navbar = () => {
         </div>
       </header>
 
-      {/* FIXED MOBILE BOTTOM NAVIGATION BAR (MATCHING SCREENSHOT) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 py-1.5 px-3 flex items-center justify-around shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+      {/* FIXED MOBILE BOTTOM NAVIGATION BAR WITH GLASS EFFECT */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl backdrop-saturate-150 border-t border-slate-200/60 py-1.5 px-3 flex items-center justify-around shadow-[0_-8px_25px_rgba(0,0,0,0.06)] supports-[backdrop-filter]:bg-white/75">
         <Link
           to="/products"
           className={`flex flex-col items-center gap-0.5 text-[9.5px] font-mono-tech font-bold uppercase transition-colors ${
@@ -397,14 +397,14 @@ const Navbar = () => {
         </Link>
       </nav>
 
-      {/* CONTACT POP-UP MODAL (MOBILE & DESKTOP ACCESSIBLE) */}
+      {/* CONTACT POP-UP MODAL WITH FROSTED GLASS OVERLAY */}
       {isContactModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-md animate-in fade-in duration-200"
           onClick={() => setIsContactModalOpen(false)}
         >
           <div
-            className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all"
+            className="bg-white/95 backdrop-blur-2xl w-full max-w-md rounded-2xl shadow-2xl border border-white/60 overflow-hidden transform transition-all"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
