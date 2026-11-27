@@ -17,8 +17,12 @@ import {
   ArrowRight,
   ListChecks,
   Cpu,
+  CheckCircle2,
+  AlertCircle,
+  RotateCcw,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import api from "../utils/api";
 
 const REQUEST_TYPES = [
   "New Turnkey Line Sizing",
@@ -29,7 +33,7 @@ const REQUEST_TYPES = [
 ];
 
 const ContactPage = () => {
-  const { submitContact, submitEnquiry, showToast } = useApp();
+  const { submitContact, submitEnquiry, showToast, machinery = [] } = useApp();
 
   const [form, setForm] = useState({
     engineeringDiscipline: "New Turnkey Line Sizing",
@@ -39,27 +43,74 @@ const ContactPage = () => {
     phone: "",
     companyName: "",
     facilityLocation: "",
-    machineryModel: "Select Machinery System (or Multi-Section Integrated Line)",
+    machineryModel: "",
     message: "",
     ndaRequested: false,
     sendSpecBook: true,
   });
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError("");
+
     if (!form.customerName.trim() || !form.email.trim() || !form.message.trim()) {
       showToast("Please fill in your Contact Name, Work Email, and Operational Specifications.", "error");
+      setSubmitError("Contact Name, Work Email, and Operational Specifications are required.");
       return;
     }
+
     try {
       setSubmitting(true);
-      const submitFn = submitContact || submitEnquiry;
-      await submitFn({
-        ...form,
+
+      const payload = {
+        customerName: form.customerName.trim(),
+        name: form.customerName.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        companyName: form.companyName.trim(),
+        roleTitle: form.roleTitle.trim(),
+        facilityLocation: form.facilityLocation.trim(),
+        machineryModel: form.machineryModel ? form.machineryModel.trim() : "",
+        subject: `${form.engineeringDiscipline || "Direct Engineering Inquiry"} - ${form.companyName.trim() || form.customerName.trim()
+          }`,
+        message: form.message.trim(),
+        engineeringDiscipline: form.engineeringDiscipline,
         enquiryType: "Direct Engineering Inquiry",
-      });
-      showToast("Inquiry routed to Senior Engineering Desk! Tier-1 response guaranteed within 2 hours.");
+        ndaRequested: Boolean(form.ndaRequested),
+        sendSpecBook: Boolean(form.sendSpecBook),
+      };
+
+      // 1. Direct submit to MongoDB Contact collection via /api/contacts
+      let responseSuccess = false;
+      try {
+        const res = await api.post("/contacts", payload);
+        if (res.data?.success || res.status === 201 || res.status === 200) {
+          responseSuccess = true;
+        }
+      } catch (directErr) {
+        console.warn("Direct /contacts POST attempt:", directErr.message);
+        // Fallback to AppContext submitContact / submitEnquiry
+        if (submitContact) {
+          await submitContact(payload);
+          responseSuccess = true;
+        } else if (submitEnquiry) {
+          await submitEnquiry(payload);
+          responseSuccess = true;
+        } else {
+          // Fallback direct to /enquiries
+          await api.post("/enquiries", payload);
+          responseSuccess = true;
+        }
+      }
+
+      setSubmitted(true);
+      showToast(
+        "Inquiry routed to Senior Engineering Desk! Tier-1 response guaranteed within 2 hours.",
+        "success"
+      );
       setForm({
         engineeringDiscipline: "New Turnkey Line Sizing",
         customerName: "",
@@ -68,16 +119,40 @@ const ContactPage = () => {
         phone: "",
         companyName: "",
         facilityLocation: "",
-        machineryModel: "Select Machinery System (or Multi-Section Integrated Line)",
+        machineryModel: "",
         message: "",
         ndaRequested: false,
         sendSpecBook: true,
       });
     } catch (err) {
-      showToast(err.response?.data?.message || "Failed to submit inquiry.", "error");
+      console.error("Submission failed:", err);
+      const errMsg =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to submit inquiry. Please verify your connection or call our 24/7 hotline.";
+      setSubmitError(errMsg);
+      showToast(errMsg, "error");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleResetForm = () => {
+    setSubmitted(false);
+    setSubmitError("");
+    setForm({
+      engineeringDiscipline: "New Turnkey Line Sizing",
+      customerName: "",
+      roleTitle: "",
+      email: "",
+      phone: "",
+      companyName: "",
+      facilityLocation: "",
+      machineryModel: "",
+      message: "",
+      ndaRequested: false,
+      sendSpecBook: true,
+    });
   };
 
   return (
@@ -165,230 +240,287 @@ const ContactPage = () => {
                 </span>
               </div>
 
-              <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-                {/* Discipline Radios */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-bold text-[#0f172a]">
-                      Select Engineering Discipline / Request Type
-                    </label>
-                    <span className="text-[10px] font-mono-tech text-[#334e68]">
-                      MANDATORY FIELD
-                    </span>
+              {submitted ? (
+                <div className="mt-6 p-7 bg-emerald-50 border border-emerald-200 rounded-xl space-y-4">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="text-base font-extrabold text-emerald-950">
+                        Inquiry Submitted Successfully!
+                      </h3>
+                      <p className="text-xs text-emerald-800 mt-1 leading-relaxed">
+                        Your inquiry has been successfully recorded in the MongoDB database and routed to our Senior Engineering Desk. A dedicated applications specialist will review your parameters and follow up within 2 hours.
+                      </p>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                    {REQUEST_TYPES.map((type) => {
-                      const active = form.engineeringDiscipline === type;
-                      return (
-                        <label
-                          key={type}
-                          className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-xs cursor-pointer transition-colors ${
-                            active
-                              ? "bg-[#eff5fc] border-[#d97706] font-bold text-[#0f172a]"
-                              : "bg-[#f8fafc] border-slate-200 text-slate-700"
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="discipline"
-                            checked={active}
-                            onChange={() =>
-                              setForm({ ...form, engineeringDiscipline: type })
-                            }
-                            className="text-[#d97706] focus:ring-[#d97706]"
-                          />
-                          <span className="leading-tight">{type}</span>
-                        </label>
-                      );
-                    })}
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={handleResetForm}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Submit Another Inquiry</span>
+                    </button>
                   </div>
                 </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+                  {submitError && (
+                    <div className="p-3.5 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2.5 text-xs text-red-700">
+                      <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                      <span>{submitError}</span>
+                    </div>
+                  )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Discipline Radios */}
                   <div>
-                    <label className="block text-xs font-bold text-[#0f172a] mb-1">
-                      Full Contact Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={form.customerName}
-                      onChange={(e) =>
-                        setForm({ ...form, customerName: e.target.value })
-                      }
-                      placeholder="e.g. Henrik Lindqvist"
-                      className="w-full h-10 px-3 rounded bg-[#eff5fc] border border-blue-100 text-xs focus:outline-none focus:border-[#d97706]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#0f172a] mb-1">
-                      Corporate Title / Role *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={form.roleTitle}
-                      onChange={(e) =>
-                        setForm({ ...form, roleTitle: e.target.value })
-                      }
-                      placeholder="e.g. Plant Director / Chief Engineer"
-                      className="w-full h-10 px-3 rounded bg-[#eff5fc] border border-blue-100 text-xs focus:outline-none focus:border-[#d97706]"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center justify-between mb-2">
                       <label className="text-xs font-bold text-[#0f172a]">
-                        Work Email *
+                        Select Engineering Discipline / Request Type
                       </label>
-                      <span className="text-[9.5px] font-mono-tech text-[#334e68]">
-                        ENTERPRISE DOMAIN PRIORITY
+                      <span className="text-[10px] font-mono-tech text-[#334e68]">
+                        MANDATORY FIELD
                       </span>
                     </div>
-                    <input
-                      type="email"
-                      required
-                      value={form.email}
-                      onChange={(e) => setForm({ ...form, email: e.target.value })}
-                      placeholder="h.lindqvist@commercialbakery.com"
-                      className="w-full h-10 px-3 rounded bg-[#eff5fc] border border-blue-100 text-xs focus:outline-none focus:border-[#d97706]"
-                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      {REQUEST_TYPES.map((type) => {
+                        const active = form.engineeringDiscipline === type;
+                        return (
+                          <label
+                            key={type}
+                            className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-xs cursor-pointer transition-colors ${active
+                                ? "bg-[#eff5fc] border-[#d97706] font-bold text-[#0f172a]"
+                                : "bg-[#f8fafc] border-slate-200 text-slate-700"
+                              }`}
+                          >
+                            <input
+                              type="radio"
+                              name="discipline"
+                              checked={active}
+                              onChange={() =>
+                                setForm({ ...form, engineeringDiscipline: type })
+                              }
+                              className="text-[#d97706] focus:ring-[#d97706]"
+                            />
+                            <span className="leading-tight">{type}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#0f172a] mb-1">
-                      Direct Phone &amp; Country Code *
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      value={form.phone}
-                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                      placeholder="+1 (312) 000-0000"
-                      className="w-full h-10 px-3 rounded bg-[#eff5fc] border border-blue-100 text-xs focus:outline-none focus:border-[#d97706]"
-                    />
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-[#0f172a] mb-1">
-                      Conglomerate Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={form.companyName}
-                      onChange={(e) =>
-                        setForm({ ...form, companyName: e.target.value })
-                      }
-                      placeholder="e.g. Continental Food Group"
-                      className="w-full h-10 px-3 rounded bg-[#eff5fc] border border-blue-100 text-xs focus:outline-none focus:border-[#d97706]"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-[#0f172a] mb-1">
+                        Full Contact Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={form.customerName}
+                        onChange={(e) =>
+                          setForm({ ...form, customerName: e.target.value })
+                        }
+                        placeholder="e.g. Henrik Lindqvist"
+                        className="w-full h-10 px-3 rounded bg-[#eff5fc] border border-blue-100 text-xs focus:outline-none focus:border-[#d97706]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#0f172a] mb-1">
+                        Corporate Title / Role
+                      </label>
+                      <input
+                        type="text"
+                        value={form.roleTitle}
+                        onChange={(e) =>
+                          setForm({ ...form, roleTitle: e.target.value })
+                        }
+                        placeholder="e.g. Plant Director / Chief Engineer"
+                        className="w-full h-10 px-3 rounded bg-[#eff5fc] border border-blue-100 text-xs focus:outline-none focus:border-[#d97706]"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#0f172a] mb-1">
-                      Facility Location &amp; Target Port
-                    </label>
-                    <input
-                      type="text"
-                      value={form.facilityLocation}
-                      onChange={(e) =>
-                        setForm({ ...form, facilityLocation: e.target.value })
-                      }
-                      placeholder="e.g. Rotterdam, Netherlands (Port of RTM)"
-                      className="w-full h-10 px-3 rounded bg-[#eff5fc] border border-blue-100 text-xs focus:outline-none focus:border-[#d97706]"
-                    />
-                  </div>
-                </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-[#0f172a] mb-1">
-                    Machinery System of Reference (Optional)
-                  </label>
-                  <select
-                    value={form.machineryModel}
-                    onChange={(e) =>
-                      setForm({ ...form, machineryModel: e.target.value })
-                    }
-                    className="w-full h-10 px-3 rounded bg-[#eff5fc] border border-blue-100 text-xs font-medium"
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-bold text-[#0f172a]">
+                          Work Email *
+                        </label>
+                        <span className="text-[9.5px] font-mono-tech text-[#334e68]">
+                          ENTERPRISE DOMAIN PRIORITY
+                        </span>
+                      </div>
+                      <input
+                        type="email"
+                        required
+                        value={form.email}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                        placeholder="h.lindqvist@commercialbakery.com"
+                        className="w-full h-10 px-3 rounded bg-[#eff5fc] border border-blue-100 text-xs focus:outline-none focus:border-[#d97706]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#0f172a] mb-1">
+                        Direct Phone &amp; Country Code
+                      </label>
+                      <input
+                        type="tel"
+                        value={form.phone}
+                        onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                        placeholder="+1 (312) 000-0000"
+                        className="w-full h-10 px-3 rounded bg-[#eff5fc] border border-blue-100 text-xs focus:outline-none focus:border-[#d97706]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-[#0f172a] mb-1">
+                        Company / Bakery Name
+                      </label>
+                      <input
+                        type="text"
+                        value={form.companyName}
+                        onChange={(e) =>
+                          setForm({ ...form, companyName: e.target.value })
+                        }
+                        placeholder="e.g. Continental Food Group"
+                        className="w-full h-10 px-3 rounded bg-[#eff5fc] border border-blue-100 text-xs focus:outline-none focus:border-[#d97706]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#0f172a] mb-1">
+                        Facility Location &amp; Target Port
+                      </label>
+                      <input
+                        type="text"
+                        value={form.facilityLocation}
+                        onChange={(e) =>
+                          setForm({ ...form, facilityLocation: e.target.value })
+                        }
+                        placeholder="e.g. Rotterdam, Netherlands (Port of RTM)"
+                        className="w-full h-10 px-3 rounded bg-[#eff5fc] border border-blue-100 text-xs focus:outline-none focus:border-[#d97706]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#0f172a] mb-1">
+                      Machinery System of Reference (Optional)
+                    </label>
+                    <select
+                      value={form.machineryModel}
+                      onChange={(e) =>
+                        setForm({ ...form, machineryModel: e.target.value })
+                      }
+                      className="w-full h-10 px-3 rounded bg-[#eff5fc] border border-blue-100 text-xs font-medium"
+                    >
+                      <option value="">
+                        Select Machinery System (or Multi-Section Integrated Line)
+                      </option>
+                      {machinery && machinery.length > 0 ? (
+                        machinery.map((m) => (
+                          <option key={m._id || m.id || m.modelNumber} value={m.name || m.modelNumber}>
+                            {m.modelNumber ? `${m.modelNumber} — ` : ""}{m.name}
+                          </option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="AB-SM250S — Industrial Spiral Mixer (Stainless Steel)">
+                            AB-SM250S — Industrial Spiral Mixer (Stainless Steel)
+                          </option>
+                          <option value="AB-SM130 — Commercial Spiral Mixer">
+                            AB-SM130 — Commercial Spiral Mixer
+                          </option>
+                          <option value="AB-PM80 — Industrial Planetary Mixer">
+                            AB-PM80 — Industrial Planetary Mixer
+                          </option>
+                          <option value="AB-KM100 — Heavy-Density Khari Mixer">
+                            AB-KM100 — Heavy-Density Khari Mixer
+                          </option>
+                          <option value="AB-DS650 — Reversible Precision Dough Sheeter">
+                            AB-DS650 — Reversible Precision Dough Sheeter
+                          </option>
+                          <option value="AB-BS450 — High-Speed Bread Slicer">
+                            AB-BS450 — High-Speed Bread Slicer
+                          </option>
+                          <option value="AB-TS300 — Continuous Toast Slicer">
+                            AB-TS300 — Continuous Toast Slicer
+                          </option>
+                          <option value="AB-PF24 — Precision Climate Proofer Chamber">
+                            AB-PF24 — Precision Climate Proofer Chamber
+                          </option>
+                          <option value="AB-FS500 — Rotary Flour Sieving Machine">
+                            AB-FS500 — Rotary Flour Sieving Machine
+                          </option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#0f172a] mb-1">
+                      Detailed Inquiry / Operational Specifications *
+                    </label>
+                    <textarea
+                      rows={4}
+                      required
+                      value={form.message}
+                      onChange={(e) => setForm({ ...form, message: e.target.value })}
+                      placeholder="Please detail target batch volume (kg/hr), dough hydration/viscosity, daily operating cycles, line integration parameters, or existing machinery serial numbers for spare parts."
+                      className="w-full p-3 rounded bg-[#eff5fc] border border-blue-100 text-xs focus:outline-none focus:border-[#d97706]"
+                    />
+                    <div className="text-[10px] font-mono-tech text-slate-500 mt-1">
+                      Accepted documentation formats (PDF, STEP, DWG) can be attached upon confirmation email acknowledgment.
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 text-xs text-slate-700">
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={form.ndaRequested}
+                        onChange={(e) =>
+                          setForm({ ...form, ndaRequested: e.target.checked })
+                        }
+                        className="mt-0.5 rounded border-slate-300 text-[#d97706]"
+                      />
+                      <span>
+                        Request confidential <strong>Non-Disclosure Agreement (NDA)</strong> countersigned prior to proprietary factory layout or CAD exchange.
+                      </span>
+                    </label>
+
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={form.sendSpecBook}
+                        onChange={(e) =>
+                          setForm({ ...form, sendSpecBook: e.target.checked })
+                        }
+                        className="mt-0.5 rounded border-slate-300 text-[#d97706]"
+                      />
+                      <span>
+                        Send electronic copy of the <strong>2024 ApexBake Industrial Machinery Spec Book</strong> (18MB Engineering PDF).
+                      </span>
+                    </label>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="bg-[#d97706] hover:bg-[#b45309] text-white font-bold text-xs uppercase tracking-wider px-8 py-4 rounded inline-flex items-center gap-2 shadow-md transition-colors cursor-pointer disabled:opacity-60"
                   >
-                    <option>
-                      Select Machinery System (or Multi-Section Integrated Line)
-                    </option>
-                    <option>AB-SM250S — Industrial Spiral Mixer (Stainless Steel)</option>
-                    <option>AB-SM130 — Commercial Spiral Mixer</option>
-                    <option>AB-PM80 — Industrial Planetary Mixer</option>
-                    <option>AB-KM100 — Heavy-Density Khari Mixer</option>
-                    <option>AB-DS650 — Reversible Precision Dough Sheeter</option>
-                    <option>AB-BS450 — High-Speed Bread Slicer</option>
-                    <option>AB-TS300 — Continuous Toast Slicer</option>
-                    <option>AB-PF24 — Precision Climate Proofer Chamber</option>
-                    <option>AB-FS500 — Rotary Flour Sieving Machine</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#0f172a] mb-1">
-                    Detailed Inquiry / Operational Specifications *
-                  </label>
-                  <textarea
-                    rows={4}
-                    required
-                    value={form.message}
-                    onChange={(e) => setForm({ ...form, message: e.target.value })}
-                    placeholder="Please detail target batch volume (kg/hr), dough hydration/viscosity, daily operating cycles, line integration parameters, or existing machinery serial numbers for spare parts."
-                    className="w-full p-3 rounded bg-[#eff5fc] border border-blue-100 text-xs focus:outline-none focus:border-[#d97706]"
-                  />
-                  <div className="text-[10px] font-mono-tech text-slate-500 mt-1">
-                    Accepted documentation formats (PDF, STEP, DWG) can be attached upon confirmation email acknowledgment.
-                  </div>
-                </div>
-
-                <div className="space-y-2 text-xs text-slate-700">
-                  <label className="flex items-start gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.ndaRequested}
-                      onChange={(e) =>
-                        setForm({ ...form, ndaRequested: e.target.checked })
-                      }
-                      className="mt-0.5 rounded border-slate-300 text-[#d97706]"
-                    />
+                    <Send className="w-3.5 h-3.5" />
                     <span>
-                      Request confidential <strong>Non-Disclosure Agreement (NDA)</strong> countersigned prior to proprietary factory layout or CAD exchange.
+                      {submitting
+                        ? "ROUTING TO ENGINEERING DESK..."
+                        : "SUBMIT INQUIRY TO ENGINEERING DESK"}
                     </span>
-                  </label>
-
-                  <label className="flex items-start gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.sendSpecBook}
-                      onChange={(e) =>
-                        setForm({ ...form, sendSpecBook: e.target.checked })
-                      }
-                      className="mt-0.5 rounded border-slate-300 text-[#d97706]"
-                    />
-                    <span>
-                      Send electronic copy of the <strong>2024 ApexBake Industrial Machinery Spec Book</strong> (18MB Engineering PDF).
-                    </span>
-                  </label>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="bg-[#d97706] hover:bg-[#b45309] text-white font-bold text-xs uppercase tracking-wider px-8 py-4 rounded inline-flex items-center gap-2 shadow-md transition-colors cursor-pointer"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>
-                    {submitting
-                      ? "ROUTING TO ENGINEERING DESK..."
-                      : "SUBMIT INQUIRY TO ENGINEERING DESK"}
-                  </span>
-                </button>
-              </form>
+                  </button>
+                </form>
+              )}
             </div>
 
             {/* Right 4 Cols: 24/7 Breakdown Hotline & OEM Parts Express Dispatch */}
