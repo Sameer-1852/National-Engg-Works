@@ -134,6 +134,7 @@ function App() {
               <Route path="/insights" element={<InsightsPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="*" element={<HomePage />} />
             </Routes>
           </HomeScrollAnimationWrapper>
           <Footer />
